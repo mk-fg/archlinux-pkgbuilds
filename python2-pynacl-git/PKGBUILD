@@ -1,0 +1,24 @@
+_pkgname=pynacl
+pkgname=python2-pynacl-git
+pkgver=0.3.0.61cc9f2c52
+pkgrel=1
+pkgdesc="Python binding to the Networking and Cryptography (NaCl) library."
+arch=('any')
+url="https://github.com/pyca/pynacl/"
+license=('Apache-2.0')
+groups=()
+depends=('python2' 'python2-six' 'python2-cffi')
+makedepends=('git' 'python2-setuptools')
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+source=("${_pkgname}::git+https://github.com/pyca/pynacl/")
+md5sums=('SKIP')
+
+package() {
+	cd "$srcdir/${_pkgname}"
+	python2 setup.py install --prefix=/usr --root="$pkgdir/" --optimize=1
+}

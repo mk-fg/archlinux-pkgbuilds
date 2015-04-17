@@ -1,0 +1,24 @@
+_pkgname=evdev
+pkgname=python2-evdev-git
+pkgver=0.4.6.2120a48840
+pkgrel=1
+pkgdesc="Python bindings for the Linux input subsystem."
+arch=('any')
+url="https://github.com/gvalkov/python-evdev/"
+license=('BSD')
+groups=()
+depends=('python2')
+makedepends=('git' 'python2-setuptools')
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+source=("${_pkgname}::git+https://github.com/gvalkov/python-evdev/")
+md5sums=('SKIP')
+
+package() {
+	cd "$srcdir/${_pkgname}"
+	python2 setup.py install --prefix=/usr --root="$pkgdir/" --optimize=1
+}
