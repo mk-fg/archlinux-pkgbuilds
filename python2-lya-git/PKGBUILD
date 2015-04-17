@@ -1,6 +1,7 @@
-_pkgname=lya
-pkgname=python2-lya-git
-pkgver=14.12.2.7680ad1
+_p=lya
+
+pkgname=python2-${_p}-git
+pkgver=14.12.2
 pkgrel=1
 pkgdesc="YAML-based configuration module."
 arch=('any')
@@ -15,10 +16,15 @@ replaces=()
 backup=()
 options=(!emptydirs)
 install=
-source=("${_pkgname}::git+https://github.com/mk-fg/layered-yaml-attrdict-config/")
+source=("${_p}::git+${url}")
 md5sums=('SKIP')
 
+pkgver() {
+	cd "${_p}"
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
 package() {
-	cd "$srcdir/${_pkgname}"
-	python2 setup.py install --prefix=/usr --root="$pkgdir/" --optimize=1
+	cd "${srcdir}/${_p}"
+	python2 setup.py install --prefix=/usr --root="${pkgdir}/" --optimize=1
 }

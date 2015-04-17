@@ -1,14 +1,14 @@
-_p=pynacl
+_p=fgc
 
 pkgname=python2-${_p}-git
-pkgver=0.3.0
+pkgver=15.02.2
 pkgrel=1
-pkgdesc="Python binding to the Networking and Cryptography (NaCl) library."
+pkgdesc="Misc py stdlib extensions."
 arch=('any')
-url="https://github.com/pyca/${_p}"
-license=('Apache-2.0')
+url="https://github.com/mk-fg/${_p}"
+license=('WTFPL')
 groups=()
-depends=('python2' 'python2-six' 'python2-cffi')
+depends=('python2' 'python2-yaml')
 makedepends=('git' 'python2-setuptools')
 provides=()
 conflicts=()
