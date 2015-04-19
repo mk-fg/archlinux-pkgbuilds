@@ -1,0 +1,50 @@
+_p=sysdig
+
+pkgname=${_p}-git
+pkgver=15.03.0
+pkgrel=1
+pkgdesc="System-level exploration and troubleshooting tool."
+arch=('any')
+url="https://github.com/draios/${_p}"
+license=('BSD')
+groups=()
+depends=('luajit' 'jsoncpp' )
+makedepends=('cmake')
+optdepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+source=("${_p}::git+${url}")
+md5sums=('SKIP')
+
+pkgver() {
+	cd "${_p}"
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd "${srcdir}/${_p}"
+	mkdir -p build
+	cd build
+
+	cmake_opts=(
+		-DBUILD_DRIVER:BOOL=off
+		-DDIR_ETC=/etc
+		-DCMAKE_INSTALL_PREFIX=/usr
+		-DUSE_BUNDLED_JSONCPP:BOOL=off
+		-DUSE_BUNDLED_LUAJIT:BOOL=off
+		-DUSE_BUNDLED_ZLIB:BOOL=off
+	)
+	cmake "${cmake_opts[@]}" ..
+
+	cd ..
+	make
+}
+
+package() {
+	cd "${srcdir}/${_p}"
+	make DESTDIR="$pkgdir" install
+}
