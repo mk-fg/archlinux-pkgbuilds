@@ -1,0 +1,30 @@
+_p=netaddr
+
+pkgname=python2-${_p}-git
+pkgver=0.7.14
+pkgrel=1
+pkgdesc="A network address manipulation library for Python."
+arch=('any')
+url="https://github.com/drkjam/${_p}/"
+license=('WTFPL')
+groups=()
+depends=('python2')
+makedepends=('git' 'python2-setuptools')
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+source=("${_p}::git+${url}")
+md5sums=('SKIP')
+
+pkgver() {
+	cd "${_p}"
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+	cd "${srcdir}/${_p}"
+	python2 setup.py install --prefix=/usr --root="${pkgdir}/" --optimize=1
+}
