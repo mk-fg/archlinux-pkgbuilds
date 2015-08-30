@@ -1,0 +1,90 @@
+_p=djbdns
+
+pkgname=${_p}
+pkgver=1.05
+pkgrel=1
+pkgdesc="djbdns suite: tinydns and dnscache daemons."
+arch=('i686' 'x86_64')
+url="http://cr.yp.to/djbdns.html"
+license=('public-domain')
+groups=()
+depends=(ucspi-tcp)
+makedepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+
+source=(
+	"http://cr.yp.to/$pkgname/$pkgname-$pkgver.tar.gz"
+	"http://www.fefe.de/dns/$pkgname-$pkgver-test27.diff.bz2"
+
+	dnsroots.patch # see e.g. http://www.internic.net/zones/named.root
+	dnstracesort.patch
+	string_length_255.patch
+)
+
+sha256sums=(
+	3ccd826a02f3cde39be088e1fc6aed9fd57756b8f970de5dc99fcd2d92536b48
+	0de38133336016d5a9159d0fe1beaea809e2229820256af114cbf911f04f202a
+
+	9fe0552708f6cacd2ace4dca21e3f393acc01e73ac9e2b622aa4fe3a5874fe48
+	f1d83e1365f68571fa4e007d5219720f8d65eb3730040a087fceb0ce2d8806bf
+	c9b8d0065cfe6d4a9ad460c31c2a75bcce17bfb8001f4448e3464dea07524401
+)
+
+
+build() {
+	cd "$srcdir/$pkgname-$pkgver"
+
+	patch -p1 < ../dnsroots.patch || return 1
+	patch -p1 < ../dnstracesort.patch || return 1
+	patch -p1 < ../string_length_255.patch || return 1
+
+	patch -p1 < ../"$pkgname-$pkgver"-test27.diff || return 1
+
+	echo "gcc $CFLAGS -include /usr/include/errno.h" > conf-cc
+	echo "gcc $LDFLAGS" > conf-ld
+	echo "/usr" > conf-home
+
+	make -j1 || return 1
+}
+
+
+package() {
+	cd "$srcdir/$pkgname-$pkgver"
+
+	local binaries=(
+		dnscache-conf tinydns-conf walldns-conf rbldns-conf pickdns-conf axfrdns-conf
+		dnscache tinydns walldns rbldns pickdns axfrdns
+		tinydns-get tinydns-data tinydns-edit rbldns-data pickdns-data axfr-get
+
+		dnsip dnsipq dnsip6 dnsip6q dnsqr dnsq
+		dnsname dnstxt dnsmx dnsfilter random-ip dnstrace dnstracesort
+	)
+
+	install -D -m0755 -t "$pkgdir"/usr/bin "${binaries[@]}" || return 1
+
+	mkdir -p "$pkgdir"/etc/djbdns/resolver
+	cat >"$pkgdir"/etc/djbdns/resolver/env.default <<EOF
+UID=65534
+GID=65534
+ROOT=/etc/djbdns/resolver
+IP=
+EOF
+
+	mkdir -p "$pkgdir"/etc/djbdns/cache
+	cat >"$pkgdir"/etc/djbdns/cache/env.default <<EOF
+UID=65534
+GID=65534
+ROOT=/etc/djbdns/cache
+CACHESIZE=1000000
+FORWARDONLY=1
+IP=
+IPSEND=
+EOF
+
+	# dd if=/dev/urandom of=/etc/djbdns/cache/seed bs=128 count=1
+}
