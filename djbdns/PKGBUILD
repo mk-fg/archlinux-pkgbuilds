@@ -3,7 +3,7 @@ _p=djbdns
 pkgname=${_p}
 pkgver=1.05
 pkgrel=1
-pkgdesc="djbdns suite: tinydns and dnscache daemons."
+pkgdesc="djbdns suite (tinydns and dnscache daemons), with fefe.de patches."
 arch=('i686' 'x86_64')
 url="http://cr.yp.to/djbdns.html"
 license=('public-domain')
@@ -85,6 +85,30 @@ FORWARDONLY=1
 IP=
 IPSEND=
 EOF
-
 	# dd if=/dev/urandom of=/etc/djbdns/cache/seed bs=128 count=1
+
+	mkdir -p "$pkgdir"/usr/lib/systemd/system
+	cat >"$pkgdir"/usr/lib/systemd/system/tinydns.service <<EOF
+[Service]
+EnvironmentFile=/etc/djbdns/resolver/env
+StandardOutput=null
+StandardError=inherit
+SyslogIdentifier=tinydns
+ExecStart=/usr/bin/tinydns
+
+[Install]
+WantedBy=multi-user.target
+EOF
+	cat >"$pkgdir"/usr/lib/systemd/system/dnscache.service <<EOF
+[Service]
+EnvironmentFile=/etc/djbdns/cache/env
+StandardOutput=null
+StandardError=inherit
+SyslogIdentifier=dnscache
+ExecStart=/bin/sh -c 'exec /usr/bin/dnscache </etc/djbdns/cache/seed'
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 }
