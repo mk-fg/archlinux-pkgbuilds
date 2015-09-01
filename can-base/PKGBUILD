@@ -1,4 +1,4 @@
-pkgname=container-base
+pkgname=can-base
 pkgver=2
 pkgrel=4
 pkgdesc="meta-package with base system for container machine."
@@ -44,7 +44,7 @@ provides=()
 conflicts=()
 replaces=()
 
-install=container-base.install
+install=can-base.install
 
 
 package() {

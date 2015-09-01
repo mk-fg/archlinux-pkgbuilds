@@ -1,11 +1,11 @@
-pkgname=container-tools
+pkgname=can-tools
 pkgver=1
 pkgrel=1
 pkgdesc="meta-package for less-than-basic container setup."
 arch=(any)
 
 depends=(
-	container-base
+	can-base
 
 	atop
 	busybox

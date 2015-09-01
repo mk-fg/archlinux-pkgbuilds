@@ -1,11 +1,11 @@
-pkgname=container-py
+pkgname=can-py
 pkgver=1
 pkgrel=1
 pkgdesc="meta-package for python-apps container setup."
 arch=(any)
 
 depends=(
-	container-base
+	can-base
 
 	git
 	patch
