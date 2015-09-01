@@ -1,0 +1,29 @@
+pkgname=container-tools
+pkgver=1
+pkgrel=1
+pkgdesc="meta-package for less-than-basic container setup."
+arch=(any)
+
+depends=(
+	container-base
+
+	atop
+	busybox
+	colordiff
+	dash
+	fping
+	git
+	ipset
+	iptables
+	lz4
+	patch
+	pv
+	rsync
+	screen
+	xz
+	zsh
+)
+
+provides=()
+conflicts=()
+replaces=()
