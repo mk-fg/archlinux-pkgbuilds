@@ -1,6 +1,6 @@
 pkgname=container-base
-pkgver=1
-pkgrel=1
+pkgver=2
+pkgrel=4
 pkgdesc="meta-package with base system for container machine."
 arch=(any)
 
@@ -43,3 +43,21 @@ depends=(
 provides=()
 conflicts=()
 replaces=()
+
+install=container-base.install
+
+
+package() {
+	cd "$pkgdir"
+
+	mkdir -p etc/systemd/network
+	cat >etc/systemd/network/veth.network <<EOF
+[Match]
+Name=host* ve-*
+Virtualization=systemd-nspawn
+
+[Network]
+DHCP=yes
+EOF
+
+}

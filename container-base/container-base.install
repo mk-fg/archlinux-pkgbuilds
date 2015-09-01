@@ -1,0 +1,7 @@
+post_install() {
+	systemctl enable systemd-networkd systemd-resolved
+
+	# systemd-resolved's resolv.conf
+	mv /etc/resolv.conf{,.pacsave}
+	ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+}
