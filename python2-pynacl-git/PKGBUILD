@@ -4,12 +4,12 @@ pkgname=python2-${_p}-git
 pkgver=0.3.0
 pkgrel=1
 pkgdesc="Python binding to the Networking and Cryptography (NaCl) library."
-arch=('any')
+arch=(i686 x86_64)
 url="https://github.com/pyca/${_p}"
-license=('Apache-2.0')
+license=(Apache-2.0)
 groups=()
-depends=('python2' 'python2-six' 'python2-cffi')
-makedepends=('git' 'python2-setuptools')
+depends=(python2 python2-six python2-cffi)
+makedepends=(git python2-setuptools)
 provides=()
 conflicts=()
 replaces=()
@@ -17,7 +17,7 @@ backup=()
 options=(!emptydirs)
 install=
 source=("${_p}::git+${url}")
-md5sums=('SKIP')
+md5sums=(SKIP)
 
 pkgver() {
 	cd "${_p}"
