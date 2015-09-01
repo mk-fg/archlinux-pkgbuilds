@@ -1,0 +1,45 @@
+pkgname=container-base
+pkgver=1
+pkgrel=1
+pkgdesc="meta-package with base system for container machine."
+arch=(any)
+
+depends=(
+	bash
+	bzip2
+	coreutils
+	diffutils
+	file
+	filesystem
+	findutils
+	gawk
+	gcc-libs
+	gettext
+	glibc
+	grep
+	gzip
+	iproute2
+	iputils
+	less
+	licenses
+	logrotate
+	man-db
+	man-pages
+	nano
+	pacman
+	perl
+	procps-ng
+	psmisc
+	sed
+	shadow
+	sysfsutils
+	systemd-sysvcompat
+	tar
+	texinfo
+	util-linux
+	which
+)
+
+provides=()
+conflicts=()
+replaces=()
