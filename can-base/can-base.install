@@ -7,4 +7,8 @@ post_install() {
 
 	# Common site-local code mounted from host
 	mkdir /usr/src/modules
+
+	# To fix "login[29]: pam_securetty(login:auth): access denied: tty 'pts/0' is not secure !"
+	echo >>/etc/securetty
+	echo pts/0 >>/etc/securetty
 }
