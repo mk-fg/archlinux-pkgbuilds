@@ -1,5 +1,5 @@
 pkgname=can-tools
-pkgver=1
+pkgver=2
 pkgrel=1
 pkgdesc="meta-package for less-than-basic container setup."
 arch=(any)
@@ -16,6 +16,7 @@ depends=(
 	ipset
 	iptables
 	lz4
+	openssh
 	patch
 	pv
 	rsync
