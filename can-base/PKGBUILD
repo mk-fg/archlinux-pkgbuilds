@@ -1,6 +1,6 @@
 pkgname=can-base
 pkgver=3
-pkgrel=2
+pkgrel=3
 pkgdesc="meta-package with base system for container machine."
 arch=(any)
 
@@ -50,14 +50,22 @@ install=can-base.install
 package() {
 	cd "$pkgdir"
 
+	# Create explicit veth unit instead of default ones, to e.g. assign IP there later
 	mkdir -p etc/systemd/network
 	cat >etc/systemd/network/veth.network <<EOF
 [Match]
-Name=host* ve-*
-Virtualization=systemd-nspawn
+Name=host*
+Virtualization=container
 
 [Network]
 DHCP=yes
+LinkLocalAddressing=no
+
+#Address=10.0.10.15
+#Gateway=10.0.10.1
+#DNS=10.0.10.1
 EOF
+	ln -s /dev/null etc/systemd/network/80-container-host0.network
+	ln -s /dev/null etc/systemd/network/80-container-ve.network
 
 }
