@@ -4,4 +4,7 @@ post_install() {
 	# systemd-resolved's resolv.conf
 	mv /etc/resolv.conf{,.pacsave}
 	ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+	# Common site-local code mounted from host
+	mkdir /usr/src/modules
 }
