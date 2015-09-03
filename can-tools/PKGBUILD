@@ -1,6 +1,6 @@
 pkgname=can-tools
 pkgver=2
-pkgrel=1
+pkgrel=2
 pkgdesc="meta-package for less-than-basic container setup."
 arch=(any)
 
