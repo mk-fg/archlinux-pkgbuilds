@@ -1,6 +1,6 @@
 pkgname=can-tools
-pkgver=2
-pkgrel=2
+pkgver=3
+pkgrel=1
 pkgdesc="meta-package for less-than-basic container setup."
 arch=(any)
 
@@ -11,6 +11,7 @@ depends=(
 	busybox
 	colordiff
 	dash
+	fcron
 	fping
 	git
 	ipset
