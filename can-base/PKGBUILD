@@ -1,6 +1,6 @@
 pkgname=can-base
 pkgver=3
-pkgrel=3
+pkgrel=4
 pkgdesc="meta-package with base system for container machine."
 arch=(any)
 
@@ -52,7 +52,7 @@ package() {
 
 	# Create explicit veth unit instead of default ones, to e.g. assign IP there later
 	mkdir -p etc/systemd/network
-	cat >etc/systemd/network/veth.network <<EOF
+	cat >etc/systemd/network/66-ve-host.network <<EOF
 [Match]
 Name=host*
 Virtualization=container
@@ -61,9 +61,12 @@ Virtualization=container
 DHCP=yes
 LinkLocalAddressing=no
 
-#Address=10.0.10.15
-#Gateway=10.0.10.1
-#DNS=10.0.10.1
+# Address=10.0.10.15/24
+# Address=fddd::10:15/104
+# Gateway=10.0.10.1
+# Gateway=fddd::10:1
+# DNS=10.0.10.1
+# DNS=fddd::10:1
 EOF
 	ln -s /dev/null etc/systemd/network/80-container-host0.network
 	ln -s /dev/null etc/systemd/network/80-container-ve.network
