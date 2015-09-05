@@ -1,6 +1,6 @@
 pkgname=can-base
 pkgver=3
-pkgrel=4
+pkgrel=6
 pkgdesc="meta-package with base system for container machine."
 arch=(any)
 

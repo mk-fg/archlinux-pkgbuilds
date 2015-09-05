@@ -5,10 +5,13 @@ post_install() {
 	mv /etc/resolv.conf{,.pacsave}
 	ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
-	# Common site-local code mounted from host
-	mkdir /usr/src/modules
-
 	# To fix "login[29]: pam_securetty(login:auth): access denied: tty 'pts/0' is not secure !"
 	echo >>/etc/securetty
 	echo pts/0 >>/etc/securetty
+
+	# Common site-local code mounted from host
+	mkdir /usr/src/modules
+
+	# To avoid systemd creating btrfs subvolume there
+	mkdir -p -m0700 /var/lib/machines
 }
