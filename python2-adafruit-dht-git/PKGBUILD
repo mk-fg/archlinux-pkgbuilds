@@ -1,0 +1,24 @@
+_pkgname=Adafruit_Python_DHT
+pkgname=python2-adafruit-dht-git
+pkgver=1.0.0.ad95d10cdf
+pkgrel=1
+pkgdesc="Library to get readings from the DHT11, DHT22, and AM2302 humidity and temperature sensors on a Raspberry Pi or Beaglebone Black."
+arch=(any)
+url="https://github.com/adafruit/Adafruit_Python_DHT"
+license=(MIT)
+groups=()
+depends=(python2)
+makedepends=(git python2-setuptools)
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+source=("${_pkgname}::git+https://github.com/adafruit/Adafruit_Python_DHT")
+md5sums=(SKIP)
+
+package() {
+  cd "$srcdir/${_pkgname}"
+  python2 setup.py install --prefix=/usr --root="${pkgdir}" --optimize=1
+}
