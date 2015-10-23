@@ -1,11 +1,11 @@
-_pkgname=Adafruit_Python_DHT
-pkgname=python2-adafruit-dht-git
+_pkgname=sht-sensor
+pkgname=python2-sht-sensor-git
 pkgver=1.0.0.ad95d10cdf
 pkgrel=1
-pkgdesc="Library to get readings from the DHT11, DHT22, and AM2302 humidity and temperature sensors on a Raspberry Pi or Beaglebone Black."
+pkgdesc="Python driver and command-line tool for Sensirion SHT1x and SHT7x sensors connected to GPIO pins."
 arch=(any)
-url="https://github.com/adafruit/Adafruit_Python_DHT"
-license=(MIT)
+url="https://github.com/mk-fg/sht-sensor/"
+license=(WTFPL)
 groups=()
 depends=(python2)
 makedepends=(git python2-setuptools)
