@@ -1,0 +1,49 @@
+pkgname=cryptodev-linux
+pkgver=1.8
+pkgrel=1
+pkgdesc="Linux kernel module to provide fast /dev/crypto interface."
+arch=(armv7h)
+url="https://github.com/$pkgname/$pkgname"
+license=(GPL-2)
+groups=()
+depends=(linux)
+makedepends=(linux-headers)
+optdepends=()
+provides=(cryptodev_friendly)
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+source=("$url/archive/$pkgname-$pkgver.tar.gz")
+sha256sums=(6f713c57d8b660571b5677287a5092cc4c7cf83fe43a7b24f369ec3023f66709)
+
+prepare() {
+	[[ -n "$KERNEL_DIR" ]] || {
+		msg "--- Set KERNEL_DIR in env to something like: /lib/modules/4.3.0-2-ARCH/build"
+		msg "--- KERNEL_DIR must correspond to kernel that module is being built for."
+		msg "--- Use with openssl-cryptodev (ArchLinuxARM package) or such."
+		return 1
+	}
+}
+
+build() {
+	cd "$srcdir/$pkgname-$pkgname-$pkgver"
+	make
+}
+
+package() {
+	cd "$srcdir/$pkgname-$pkgname-$pkgver"
+
+	dst="${KERNEL_DIR%/build}"
+	[[ "${dst%%/*}" = /usr ]] || dst=/usr"$dst"
+
+	install -D cryptodev.ko "$pkgdir$dst"/cryptodev.ko || return 1
+	install -D crypto/cryptodev.h "$pkgdir"/usr/include/crypto/cryptodev.h || return 1
+
+	dst="$pkgdir"/usr/lib/udev/rules.d
+	mkdir -p "$dst"
+	cat >"$dst"/90-cryptodev.rules <<EOF
+KERNEL=="crypto", MODE="0666"
+EOF
+}
