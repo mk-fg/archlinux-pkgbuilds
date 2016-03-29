@@ -1,14 +1,14 @@
 _p=upwork
 
 pkgname=${_p}
-pkgver=4.0.86.0
+pkgver=4.0.144.0
 pkgrel=1
 pkgdesc="Upwork Team App."
-arch=('x86_64')
+arch=(x86_64)
 url="https://www.upwork.com/downloads/new-team-application"
-license=('unknown')
+license=(unknown)
 groups=()
-depends=('gtk2' 'gtkglext' 'libudev.so.0' 'libgcrypt15')
+depends=(gtk2 gtkglext libgcrypt15 libxss libxtst glu gconf alsa-lib)
 makedepends=()
 provides=()
 conflicts=()
@@ -16,8 +16,8 @@ replaces=()
 backup=()
 options=(!emptydirs)
 install=
-source=("http://updates.team.odesk.com/binaries/v4_0_86_0_ba6c68c617adc98/upwork_amd64.deb")
-sha256sums=('6ebce0137df4e93f57135a8e4cf9576200acadb4e93e9b24a2275e8baf6cd1dc')
+source=("http://updates.team.odesk.com/binaries/v4_0_144_0_mj9j7zmoj9asg5f0/upwork_amd64.deb")
+sha256sums=(45b785f6697a12ce3bbaab166d20cb80f9c9ec120b0af945cfa22330cfcaf19e)
 
 prepare() {
 	cd "${srcdir}"
@@ -27,4 +27,5 @@ prepare() {
 package() {
 	cd "${srcdir}"
 	cp -rp usr "${pkgdir}/usr"
+	ln -s /usr/lib/libudev.so "${pkgdir}/usr/share/upwork/libudev.so.0"
 }
