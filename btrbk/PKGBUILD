@@ -1,0 +1,27 @@
+pkgname=btrbk
+pkgver=0.23.1
+pkgrel=1
+pkgdesc="A backup tool for btrfs subvolumes, taking advantage of btrfs specific capabilities to create atomic snapshots and transfer them incrementally to your backup locations."
+arch=(any)
+url="http://digint.ch/btrbk"
+license=(GPL3)
+groups=()
+depends=(perl btrfs-progs openssh pv)
+makedepends=()
+optdepends=(
+	'openssh: remote backup support'
+	'pv: --progress support' )
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=(!emptydirs)
+install=
+source=("http://digint.ch/download/btrbk/releases/${pkgname}-${pkgver}.tar.xz")
+sha256sums=(f82a523b5900f1c088ffa17327e7c15b753ee1c2552a00fac3abb2fcc6469279)
+
+package() {
+	cd "${srcdir}/${pkgname}-${pkgver}"
+	sed -i 's/sbin/bin/g' contrib/systemd/btrbk.service
+	make DESTDIR="${pkgdir}" BINDIR="/usr/bin" install
+}
