@@ -1,5 +1,5 @@
 pkgname=can-py
-pkgver=1
+pkgver=2
 pkgrel=1
 pkgdesc="meta-package for python-apps container setup."
 arch=(any)
@@ -20,7 +20,7 @@ depends=(
 	python2-virtualenv
 	python2-setuptools
 
-	python2-pynacl-git
+	python2-libnacl
 	python2-systemd
 )
 
