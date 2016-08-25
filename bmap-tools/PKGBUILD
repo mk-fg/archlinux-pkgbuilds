@@ -1,0 +1,31 @@
+_p=bmap-tools
+
+pkgname="$_p"
+pkgver=3.3
+pkgrel=1
+pkgdesc="Tool optimized for copying largely sparse files using information from a block map (bmap) file"
+arch=(any)
+url="https://github.com/mk-fg/tools.bmap-tools/"
+license=(GPL2)
+depends=(python2)
+makedepends=(git python2-setuptools)
+source=("$_p::git+$url")
+sha256sums=(SKIP)
+
+pkgver() {
+  cd "$_p"
+	printf "%s.r%s.%s"\
+		"$(gawk 'match($0,/^VERSION = "([^"]+)"/,a) {print a[1]}' bmaptool)"\
+		"$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd "$_p"
+  python2 setup.py build
+}
+
+package() {
+  cd "$_p"
+  python2 setup.py install --root="$pkgdir"/ --optimize=1
+  install -Dm644 docs/man1/bmaptool.1 "$pkgdir"/usr/share/man/man1/bmaptool.1
+}
