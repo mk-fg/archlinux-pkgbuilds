@@ -1,5 +1,5 @@
 pkgname=libraptorq
-pkgver=0.1.6
+pkgver=0.1.7
 pkgrel=1
 pkgdesc='Forward error correction library implementing RaptorQ algorithm'
 arch=(i686 x86_64)
@@ -8,19 +8,14 @@ license=(LGPL3)
 makedepends=(cmake lz4)
 source=(
 	"https://www.fenrirproject.org/Luker/libRaptorQ/repository/archive.tar.gz?ref=v${pkgver}"
-	cmake.patch
 )
 sha256sums=(
-	a05c1273b6119577bcbf0e72ef414a6e07f31c9b0a7513bbff84e9dc8db7dd7d
-	ce8d8805dbee0e686c21be7e009bba74f48e6001d5bb0124e9bc54833fb2da9b
+	b8972d4b94bc36b2695a7be67e582964ace03e25817de89536fb3b07ff25e07c
 )
 
 build() {
 	[[ -e "$srcdir/$pkgname-$pkgver" ]] || {
 		mv "$srcdir/libRaptorQ-v$pkgver"-* "$srcdir/$pkgname-$pkgver"
-		pushd "$srcdir/$pkgname-$pkgver"
-		patch -p1 < ../cmake.patch
-		popd
 	}
 	cd "$srcdir/$pkgname-$pkgver"
 	mkdir -p build
