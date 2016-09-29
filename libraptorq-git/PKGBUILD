@@ -1,0 +1,30 @@
+_p=libraptorq
+
+pkgname=${_p}-git
+pkgver=0.1.7
+pkgrel=1
+pkgdesc='Forward error correction library implementing RaptorQ algorithm'
+arch=(i686 x86_64)
+url='https://www.fenrirproject.org'
+license=(LGPL3)
+makedepends=(cmake lz4)
+source=("${_p}::git+https://www.fenrirproject.org/Luker/libRaptorQ.git")
+sha256sums=(SKIP)
+
+pkgver() {
+	cd "${_p}"
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd "$srcdir/${_p}"
+	mkdir -p build
+	cd build
+	cmake -D CMAKE_INSTALL_PREFIX=/usr -D CMAKE_BUILD_TYPE=Release ../
+	make
+}
+
+package() {
+	cd "$srcdir/${_p}/build"
+	make install DESTDIR="$pkgdir"
+}
