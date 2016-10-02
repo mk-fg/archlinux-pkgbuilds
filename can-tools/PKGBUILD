@@ -1,28 +1,15 @@
 pkgname=can-tools
-pkgver=3
+pkgver=4
 pkgrel=1
-pkgdesc="meta-package for less-than-basic container setup."
+pkgdesc="meta-package for more-than-basic container setup."
 arch=(any)
 
 depends=(
 	can-base
 
 	atop
-	busybox
-	colordiff
-	dash
-	fcron
-	fping
-	git
-	ipset
-	iptables
-	lz4
-	openssh
-	patch
-	pv
 	rsync
 	screen
-	xz
 	zsh
 )
 
