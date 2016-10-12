@@ -1,0 +1,45 @@
+# Based on:
+#   $Id: PKGBUILD 95035 2013-08-04 09:44:24Z svenstaro $
+#   Maintainer: Sven-Hendrik Haase <sh@lutzhaase.com>
+#
+# Does not build/require tk as it's rather uncommon and I've never needed it myself
+#
+
+pkgname=pypy3
+pkgver=5.5.0
+pkgrel=1
+
+_pyver=3.3
+_pkgver=v$pkgver
+
+pkgdesc="A Python3 implementation written in Python, JIT enabled"
+url="http://pypy.org"
+arch=(i686 x86_64)
+depends=(expat bzip2 gdbm openssl libffi zlib)
+makedepends=(python2 sqlite)
+optdepends=('sqlite: sqlite module')
+options=(!buildflags)
+license=(MIT)
+source=("https://bitbucket.org/pypy/pypy/downloads/pypy$_pyver-$_pkgver-alpha-src.tar.bz2")
+sha256sums=(d5591c34d77253e9ed57d182b6f49585b95f7c09c3e121f0e8630e5a7e75ab5f)
+
+build() {
+	cd ${pkgname}-${_pkgver}-src/pypy/goal
+	python2 ../../rpython/bin/rpython -Ojit --shared targetpypystandalone
+	python2 pypy/tool/release/package.py --without-tk --archive-name pypy3 --targetdir .
+	mkdir release-unpacked
+	tar xf pypy3.tar.bz2 -C release-unpacked
+}
+
+package() {
+	cd ${pkgname}-${_pkgver}-src/release-unpacked
+
+	install -Dm755 -t "$pkgdir"/opt/pypy3/bin/ pypy3/bin/*
+	install -Dm644 -t "$pkgdir"/opt/pypy3/ pypy3/LICENSE pypy3/README.rst
+	cp -r pypy3/include pypy3/lib_pypy pypy3/lib-python pypy3/site-packages "$pkgdir"/opt/pypy3/
+
+	mkdir -p "$pkgdir"/usr/bin
+	ln -s /opt/pypy3/bin/pypy3.3 "$pkgdir"/usr/bin/pypy3.3
+	ln -s pypy3.3 "$pkgdir"/usr/bin/pypy3
+	ln -s pypy3 "$pkgdir"/usr/bin/pypy
+}
