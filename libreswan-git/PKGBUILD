@@ -1,20 +1,18 @@
-pkgname=libreswan
+_p=libreswan
+
+pkgname=${_p}-git
 pkgver=3.18
 pkgrel=1
 pkgdesc="IPsec implementation for Linux"
 arch=(i686 x86_64)
 url='https://libreswan.org/'
-license=(GPL MPL)
+license=(GPL BSD MPL)
 depends=(systemd nss libcap-ng libevent)
-makedepends=(docbook-xsl xmlto flex bison)
-conflicts=(freeswan openswan strongswan ipsec-tools)
+makedepends=(git docbook-xsl xmlto flex bison)
+conflicts=(libreswan freeswan openswan strongswan ipsec-tools)
 backup=(etc/ipsec.conf etc/ipsec.secrets)
-source=(
-	"https://download.libreswan.org/${pkgname}-${pkgver}.tar.gz"
-)
-sha256sums=(
-	2ff61178913287567ed2736287df47e7f9a822ddcded967f3af5f03e95b5f17d
-)
+source=("${_p}::git+https://github.com/libreswan/libreswan/")
+sha256sums=(SKIP)
 
 
 libreswan_opts=(
@@ -34,15 +32,21 @@ libreswan_opts=(
 	FINALSBINDIR=/usr/bin FINALLIBEXECDIR=/usr/lib/ipsec
 )
 
-build() {
-	cd $pkgname-$pkgver
 
+pkgver() {
+	cd $_p
+	rel=$(awk '/^v[0-9]+\.[0-9]+\>/ {sub(/^v/,"",$1); print $1; exit}' CHANGES)
+	[[ -n "$rel" ]] || exit 1
+	printf "%s.%s.%s" "$rel" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd $_p
 	make "${libreswan_opts[@]}" programs
 }
 
 package() {
-	cd $pkgname-$pkgver
-
+	cd $_p
 	make "${libreswan_opts[@]}" DESTDIR="$pkgdir/" install
 
 	sed -i '1s|python|python2|' "$pkgdir"/usr/lib/ipsec/verify
