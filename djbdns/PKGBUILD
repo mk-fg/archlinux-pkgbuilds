@@ -2,7 +2,7 @@ _p=djbdns
 
 pkgname=${_p}
 pkgver=1.05
-pkgrel=1
+pkgrel=2
 pkgdesc="djbdns suite (tinydns and dnscache daemons), with fefe.de patches."
 arch=('i686' 'x86_64')
 url="http://cr.yp.to/djbdns.html"
@@ -24,6 +24,7 @@ source=(
 	dnsroots.patch # see e.g. http://www.internic.net/zones/named.root
 	dnstracesort.patch
 	string_length_255.patch
+	port-from-env.patch
 )
 
 sha256sums=(
@@ -33,6 +34,7 @@ sha256sums=(
 	9fe0552708f6cacd2ace4dca21e3f393acc01e73ac9e2b622aa4fe3a5874fe48
 	f1d83e1365f68571fa4e007d5219720f8d65eb3730040a087fceb0ce2d8806bf
 	c9b8d0065cfe6d4a9ad460c31c2a75bcce17bfb8001f4448e3464dea07524401
+	fa64fdd1abf72cfcfefdaf653ad03f8e5f94e27aba190673d27b7ecb505e76ba
 )
 
 
@@ -44,6 +46,7 @@ build() {
 	patch -p1 < ../string_length_255.patch || return 1
 
 	patch -p1 < ../"$pkgname-$pkgver"-test27.diff || return 1
+	patch -p1 < ../port-from-env.patch || return 1
 
 	echo "gcc $CFLAGS -include /usr/include/errno.h" > conf-cc
 	echo "gcc $LDFLAGS" > conf-ld
