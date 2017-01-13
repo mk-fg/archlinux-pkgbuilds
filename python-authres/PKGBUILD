@@ -1,0 +1,21 @@
+_p=authres
+pkgname=python-authres
+pkgver=0.900
+pkgrel=1
+pkgdesc="RFC 5451/7001/7601 Authentication-Results Headers generation and parsing"
+arch=(any)
+url="http://launchpad.net/authentication-results-python"
+license=(Apache)
+depends=(python)
+source=("https://launchpad.net/authentication-results-python/$pkgver/$pkgver/+download/$_p-$pkgver.tar.gz")
+sha256sums=(de91d6cc6e5c6fef545bbf0a810a765fab4ca162906d14f3f2a6b9858602c186)
+
+build() {
+	cd "$srcdir/$_p-$pkgver"
+	python setup.py build
+}
+
+package() {
+	cd "$srcdir/$_p-$pkgver"
+	python setup.py install --root="$pkgdir" --optimize=1
+}

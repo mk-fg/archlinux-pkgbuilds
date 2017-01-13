@@ -1,0 +1,22 @@
+pkgname=python-pyspf
+pkgver=2.0.12
+_pkgver_patch="${pkgver}t"
+pkgrel=1
+pkgdesc="Sender-Policy-Framework queries in Python."
+arch=(any)
+url="http://pymilter.sourceforge.net/"
+license=(PSF)
+depends=(python python-pydns python-authres)
+makedepends=(python-setuptools)
+source=("$pkgname-$pkgver.tar.gz::https://pypi.python.org/packages/source/p/pyspf/pyspf-${_pkgver_patch}.tar.gz")
+sha256sums=(8aa21ba0e3aff8a4e8ad8f586c500a5d1f9c4c902c3f11bcc107465857cd41a2)
+
+build() {
+	cd "$srcdir/pyspf-$pkgver"
+	python setup.py build
+}
+
+package() {
+	cd "$srcdir/pyspf-$pkgver"
+	python setup.py install --prefix=/usr --root="$pkgdir" --optimize=1
+}

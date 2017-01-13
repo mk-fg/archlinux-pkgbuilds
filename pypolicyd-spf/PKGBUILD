@@ -1,0 +1,22 @@
+pkgname=pypolicyd-spf
+pkgver=2.0.1
+pkgrel=1
+pkgdesc="Postfix policy engine for Sender Policy Framework (SPF) checking"
+arch=(any)
+url="https://launchpad.net/pypolicyd-spf"
+license=(Apache GPL-2)
+depends=(python python-pyspf python-authres)
+source=("https://launchpad.net/$pkgname/2.0/$pkgver/+download/$pkgname-$pkgver.tar.gz")
+sha256sums=(9124865c3434b40ecbe6e761d05039b670d403e04d2736f3ffbbc8788f47d127)
+
+build() {
+	cd "$srcdir/$pkgname-$pkgver"
+	python setup.py build
+}
+
+package() {
+	cd "$srcdir/$pkgname-$pkgver"
+	python setup.py install --root="$pkgdir" --optimize=1
+	install -m644 policyd-spf.conf.commented "$pkgdir"/etc/python-policyd-spf
+	mv "$pkgdir"/etc/python-policyd-spf/policyd-spf.conf{,.default}
+}
