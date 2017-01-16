@@ -7,7 +7,7 @@ pkgdesc="IPsec implementation for Linux"
 arch=(i686 x86_64)
 url='https://libreswan.org/'
 license=(GPL BSD MPL)
-depends=(systemd nss libcap-ng libevent)
+depends=(systemd nss libcap-ng libevent libseccomp)
 makedepends=(git docbook-xsl xmlto flex bison)
 conflicts=(libreswan freeswan openswan strongswan ipsec-tools)
 backup=(etc/ipsec.conf etc/ipsec.secrets)
@@ -26,6 +26,7 @@ libreswan_opts=(
 	USE_NM=false
 	USE_LIBCURL=false
 	USE_EXTRACRYPTO=false
+	USE_SECCOMP=true
 	WERROR_CFLAGS=
 
 	INC_USRLOCAL=/usr INC_MANDIR=share/man
