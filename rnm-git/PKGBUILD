@@ -1,0 +1,33 @@
+_p=rnm
+
+pkgname=${_p}-git
+pkgver=3.3.2
+pkgrel=1
+pkgdesc="Command-line bulk rename utility"
+arch=(i686 x86_64)
+url='https://github.com/neurobin/rnm/'
+license=(GPL-3)
+depends=()
+makedepends=(git)
+source=("${_p}::git+https://github.com/neurobin/rnm/")
+sha256sums=(SKIP)
+
+pkgver() {
+	cd $_p
+	rel=$(gawk 'match($0,/AC_INIT\(\[rnm\], \[(.*?)\],/,a) {print a[1]}' configure.ac)
+	[[ -n "$rel" ]] || exit 1
+	printf "%s.%s.%s" "$rel" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd $_p
+	./autogen.sh
+	./configure
+	make
+}
+
+package() {
+	cd $_p
+	make DESTDIR="$pkgdir/" install
+	install -D -m0644 README.md "$pkgdir"/usr/share/doc/"$_p"/README.md
+}
