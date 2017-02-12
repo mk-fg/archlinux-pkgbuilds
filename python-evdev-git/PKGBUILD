@@ -1,0 +1,28 @@
+_p=evdev
+
+pkgname=python-${_p}-git
+pkgver=0.6.4
+pkgrel=1
+pkgdesc='Python bindings for the Linux input subsystem.'
+arch=(i686 x86_64)
+url="https://github.com/gvalkov/python-${_p}"
+license=(BSD)
+groups=()
+depends=(python)
+makedepends=(git python-setuptools)
+source=("${_p}::git+${url}")
+md5sums=(SKIP)
+
+pkgver() {
+	cd $_p
+	rel=$( gawk \
+		'match($1,/^[0-9]+\.[0-9]+\.[0-9]+$/) {v=$1; next} v&&/^=+$/ {print v; exit} {v=0}' \
+		docs/changelog.rst )
+	[[ -n "$rel" ]] || exit 1
+	printf "%s.%s.%s" "$rel" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+	cd $_p
+	python setup.py install --prefix=/usr --root="${pkgdir}/" --optimize=1
+}
