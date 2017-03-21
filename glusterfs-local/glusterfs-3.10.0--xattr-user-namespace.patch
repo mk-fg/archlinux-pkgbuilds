@@ -1,0 +1,1250 @@
+diff --git a/extras/backend-xattr-sanitize.sh b/extras/backend-xattr-sanitize.sh
+index 3967654..7491996 100755
+--- a/extras/backend-xattr-sanitize.sh
++++ b/extras/backend-xattr-sanitize.sh
+@@ -2,11 +2,11 @@
+ 
+ # Each entry in the array below is a regular expression to match stale keys
+ 
+-xs=("trusted.glusterfs.createtime"
+-    "trusted.glusterfs.version"
+-    "trusted.glusterfs.afr.data-pending"
+-    "trusted.glusterfs.afr.metadata-pending"
+-    "trusted.glusterfs.afr.entry-pending")
++xs=("user.glusterfs.createtime"
++    "user.glusterfs.version"
++    "user.glusterfs.afr.data-pending"
++    "user.glusterfs.afr.metadata-pending"
++    "user.glusterfs.afr.entry-pending")
+ 
+ absolute_path()
+ {
+diff --git a/extras/clear_xattrs.sh b/extras/clear_xattrs.sh
+index dd04731..311eb24 100755
+--- a/extras/clear_xattrs.sh
++++ b/extras/clear_xattrs.sh
+@@ -9,8 +9,8 @@
+ # Not much error checking
+ remove_xattrs ()
+ {
+-    find "$1" -exec setfattr -h -x "trusted.gfid" '{}' \;  > /dev/null 2>&1;
+-    find "$1" -exec setfattr -h -x "trusted.glusterfs.volume-id" '{}' \;  > /dev/null 2>&1;
++    find "$1" -exec setfattr -h -x "user.gfid" '{}' \;  > /dev/null 2>&1;
++    find "$1" -exec setfattr -h -x "user.glusterfs.volume-id" '{}' \;  > /dev/null 2>&1;
+ }
+ 
+ main ()
+diff --git a/extras/disk_usage_sync.sh b/extras/disk_usage_sync.sh
+index 85ee158..a870373 100755
+--- a/extras/disk_usage_sync.sh
++++ b/extras/disk_usage_sync.sh
+@@ -45,7 +45,7 @@ exit 1
+ }
+ 
+ TARGET_DIR=$1
+-EXT_ATTR_NAME="trusted.glusterfs-quota-du"
++EXT_ATTR_NAME="user.glusterfs-quota-du"
+ 
+ #output of du in number of bytes
+ get_disk_usage ()
+diff --git a/extras/geo-rep/gsync-upgrade.sh b/extras/geo-rep/gsync-upgrade.sh
+index 0f73a33..446842b 100644
+--- a/extras/geo-rep/gsync-upgrade.sh
++++ b/extras/geo-rep/gsync-upgrade.sh
+@@ -46,7 +46,7 @@ function cleanup_brick()
+     # TODO: write a C program to receive a list of files and does cleanup on
+     # them instead of spawning a new setfattr process for each file if
+     # performance is bad.
+-    SSH -i $SSHKEY $HOST  "rm -rf $BRICK/.glusterfs/* && find $BRICK -exec setfattr -x trusted.gfid {} \;"
++    SSH -i $SSHKEY $HOST  "rm -rf $BRICK/.glusterfs/* && find $BRICK -exec setfattr -x user.gfid {} \;"
+ }
+ 
+ function cleanup_slave()
+diff --git a/extras/geo-rep/slave-upgrade.sh b/extras/geo-rep/slave-upgrade.sh
+index 3a37f8e..b10af80 100644
+--- a/extras/geo-rep/slave-upgrade.sh
++++ b/extras/geo-rep/slave-upgrade.sh
+@@ -26,7 +26,7 @@ function cleanup_brick()
+     # TODO: write a C program to receive a list of files and does cleanup on
+     # them instead of spawning a new setfattr process for each file if
+     # performance is bad.
+-    ssh $HOST "rm -rf $BRICK/.glusterfs/* && find $BRICK -exec setfattr -x trusted.gfid {} \; 2>/dev/null"
++    ssh $HOST "rm -rf $BRICK/.glusterfs/* && find $BRICK -exec setfattr -x user.gfid {} \; 2>/dev/null"
+ }
+ 
+ function cleanup_slave()
+diff --git a/extras/hook-scripts/add-brick/post/disabled-quota-root-xattr-heal.sh b/extras/hook-scripts/add-brick/post/disabled-quota-root-xattr-heal.sh
+index bde7249..f460ca7 100755
+--- a/extras/hook-scripts/add-brick/post/disabled-quota-root-xattr-heal.sh
++++ b/extras/hook-scripts/add-brick/post/disabled-quota-root-xattr-heal.sh
+@@ -11,8 +11,8 @@
+ ## 4. Disable itself
+ ##---------------------------------------------------------------------------
+ 
+-QUOTA_LIMIT_XATTR="trusted.glusterfs.quota.limit-set"
+-QUOTA_OBJECT_LIMIT_XATTR="trusted.glusterfs.quota.limit-objects"
++QUOTA_LIMIT_XATTR="user.glusterfs.quota.limit-set"
++QUOTA_OBJECT_LIMIT_XATTR="user.glusterfs.quota.limit-objects"
+ MOUNT_DIR=`mktemp -d -t ${0##*/}.XXXXXX`;
+ OPTSPEC="volname:,version:,gd-workdir:,volume-op:"
+ PROGNAME="Quota-xattr-heal-add-brick"
+diff --git a/geo-replication/syncdaemon/monitor.py b/geo-replication/syncdaemon/monitor.py
+index d23d454..ef73b9d 100644
+--- a/geo-replication/syncdaemon/monitor.py
++++ b/geo-replication/syncdaemon/monitor.py
+@@ -453,7 +453,7 @@ def distribute(*resources):
+ 
+         # save this xattr for the session delete command
+         old_stime_xattr_name = getattr(gconf, "master.stime_xattr_name", None)
+-        new_stime_xattr_name = "trusted.glusterfs." + mvol.uuid + "." + \
++        new_stime_xattr_name = "user.glusterfs." + mvol.uuid + "." + \
+             svol.uuid + ".stime"
+         if not old_stime_xattr_name or \
+            old_stime_xattr_name != new_stime_xattr_name:
+diff --git a/geo-replication/syncdaemon/resource.py b/geo-replication/syncdaemon/resource.py
+index 9774963..48e9667 100644
+--- a/geo-replication/syncdaemon/resource.py
++++ b/geo-replication/syncdaemon/resource.py
+@@ -290,7 +290,7 @@ class Server(object):
+     and classmethods and is used directly, without instantiation.)
+     """
+ 
+-    GX_NSPACE_PFX = (privileged() and "trusted" or "system")
++    GX_NSPACE_PFX = (privileged() and "user" or "system")
+     GX_NSPACE = GX_NSPACE_PFX + ".glusterfs"
+     NTV_FMTSTR = "!" + "B" * 19 + "II"
+     FRGN_XTRA_FMT = "I"
+@@ -298,7 +298,7 @@ class Server(object):
+     GX_GFID_CANONICAL_LEN = 37  # canonical gfid len + '\0'
+ 
+     # for backend gfid fetch, do not use GX_NSPACE_PFX
+-    GFID_XATTR = 'trusted.gfid'
++    GFID_XATTR = 'user.gfid'
+     GFID_FMTSTR = "!" + "B" * 16
+ 
+     local_path = ''
+@@ -362,7 +362,7 @@ class Server(object):
+         try:
+             return not (
+                 Xattr.lgetxattr_buf(path,
+-                                    'trusted.glusterfs.dht.linkto') == '')
++                                    'user.glusterfs.dht.linkto') == '')
+         except (IOError, OSError):
+             ex = sys.exc_info()[1]
+             if ex.errno in (ENOENT, ENODATA):
+diff --git a/libglusterfs/src/common-utils.h b/libglusterfs/src/common-utils.h
+index 67baa85..e141031 100644
+--- a/libglusterfs/src/common-utils.h
++++ b/libglusterfs/src/common-utils.h
+@@ -114,7 +114,7 @@ void trap (void);
+ #define SIGNING_TIMEOUT "120"
+ 
+ /* Shard */
+-#define GF_XATTR_SHARD_FILE_SIZE  "trusted.glusterfs.shard.file-size"
++#define GF_XATTR_SHARD_FILE_SIZE  "user.glusterfs.shard.file-size"
+ #define SHARD_ROOT_GFID "be318638-e8a0-4c6d-977d-7a937aa84806"
+ 
+ /* Lease: buffer length for stringified lease id
+diff --git a/libglusterfs/src/glusterfs.h b/libglusterfs/src/glusterfs.h
+index 4f1f27b..d4e723c 100644
+--- a/libglusterfs/src/glusterfs.h
++++ b/libglusterfs/src/glusterfs.h
+@@ -80,17 +80,17 @@
+ #define ZR_FUSE_MOUNTOPTS       "fuse-mountopts"
+ 
+ #define GF_XATTR_CLRLK_CMD      "glusterfs.clrlk"
+-#define GF_XATTR_PATHINFO_KEY   "trusted.glusterfs.pathinfo"
+-#define GF_XATTR_NODE_UUID_KEY  "trusted.glusterfs.node-uuid"
++#define GF_XATTR_PATHINFO_KEY   "user.glusterfs.pathinfo"
++#define GF_XATTR_NODE_UUID_KEY  "user.glusterfs.node-uuid"
+ #define GF_REBAL_FIND_LOCAL_SUBVOL "glusterfs.find-local-subvol"
+-#define GF_XATTR_VOL_ID_KEY   "trusted.glusterfs.volume-id"
+-#define GF_XATTR_LOCKINFO_KEY   "trusted.glusterfs.lockinfo"
++#define GF_XATTR_VOL_ID_KEY   "user.glusterfs.volume-id"
++#define GF_XATTR_LOCKINFO_KEY   "user.glusterfs.lockinfo"
+ #define GF_META_LOCK_KEY        "glusterfs.lock-migration-meta-lock"
+ #define GF_META_UNLOCK_KEY      "glusterfs.lock-migration-meta-unlock"
+ #define GF_XATTR_GET_REAL_FILENAME_KEY "glusterfs.get_real_filename:"
+ #define GF_XATTR_USER_PATHINFO_KEY   "glusterfs.pathinfo"
+ #define GF_INTERNAL_IGNORE_DEEM_STATFS "ignore-deem-statfs"
+-#define GF_XATTR_IOSTATS_DUMP_KEY "trusted.io-stats-dump"
++#define GF_XATTR_IOSTATS_DUMP_KEY "user.io-stats-dump"
+ 
+ #define GF_READDIR_SKIP_DIRS       "readdir-filter-directories"
+ #define GF_MDC_LOADED_KEY_NAMES     "glusterfs.mdc.loaded.key.names"
+@@ -110,9 +110,9 @@
+ 
+ #define XATTR_IS_BD(x) (strncmp (x, BD_XATTR_KEY, strlen (BD_XATTR_KEY)) == 0)
+ 
+-#define GF_XATTR_LINKINFO_KEY   "trusted.distribute.linkinfo"
+-#define GFID_XATTR_KEY          "trusted.gfid"
+-#define PGFID_XATTR_KEY_PREFIX  "trusted.pgfid."
++#define GF_XATTR_LINKINFO_KEY   "user.distribute.linkinfo"
++#define GFID_XATTR_KEY          "user.gfid"
++#define PGFID_XATTR_KEY_PREFIX  "user.pgfid."
+ #define VIRTUAL_GFID_XATTR_KEY_STR  "glusterfs.gfid.string"
+ #define VIRTUAL_GFID_XATTR_KEY      "glusterfs.gfid"
+ #define UUID_CANONICAL_FORM_LEN 36
+@@ -124,22 +124,22 @@
+ #define BITROT_DEFAULT_SIGNING_VERSION  (unsigned long)0
+ 
+ /* on-disk object signature keys */
+-#define BITROT_OBJECT_BAD_KEY       "trusted.bit-rot.bad-file"
+-#define BITROT_CURRENT_VERSION_KEY  "trusted.bit-rot.version"
+-#define BITROT_SIGNING_VERSION_KEY  "trusted.bit-rot.signature"
++#define BITROT_OBJECT_BAD_KEY       "user.bit-rot.bad-file"
++#define BITROT_CURRENT_VERSION_KEY  "user.bit-rot.version"
++#define BITROT_SIGNING_VERSION_KEY  "user.bit-rot.signature"
+ 
+ /* globally usable bad file marker */
+ #define GLUSTERFS_BAD_INODE         "glusterfs.bad-inode"
+ 
+ /* on-disk size of signing xattr (not the signature itself) */
+-#define BITROT_SIGNING_XATTR_SIZE_KEY  "trusted.glusterfs.bit-rot.size"
++#define BITROT_SIGNING_XATTR_SIZE_KEY  "user.glusterfs.bit-rot.size"
+ 
+ /* GET/SET object signature */
+-#define GLUSTERFS_GET_OBJECT_SIGNATURE "trusted.glusterfs.get-signature"
+-#define GLUSTERFS_SET_OBJECT_SIGNATURE "trusted.glusterfs.set-signature"
++#define GLUSTERFS_GET_OBJECT_SIGNATURE "user.glusterfs.get-signature"
++#define GLUSTERFS_SET_OBJECT_SIGNATURE "user.glusterfs.set-signature"
+ 
+ /* operation needs to be durable on-disk */
+-#define GLUSTERFS_DURABLE_OP           "trusted.glusterfs.durable-op"
++#define GLUSTERFS_DURABLE_OP           "user.glusterfs.durable-op"
+ 
+ /* key for version exchange b/w bitrot stub and changelog */
+ #define GLUSTERFS_VERSION_XCHG_KEY     "glusterfs.version.xchg"
+@@ -159,19 +159,19 @@
+ #define GLUSTERFS_PARENT_ENTRYLK "glusterfs.parent-entrylk"
+ #define GLUSTERFS_INODELK_DOM_COUNT "glusterfs.inodelk-dom-count"
+ #define GFID_TO_PATH_KEY "glusterfs.gfid2path"
+-#define GF_XATTR_STIME_PATTERN "trusted.glusterfs.*.stime"
+-#define GF_XATTR_XTIME_PATTERN "trusted.glusterfs.*.xtime"
++#define GF_XATTR_STIME_PATTERN "user.glusterfs.*.stime"
++#define GF_XATTR_XTIME_PATTERN "user.glusterfs.*.xtime"
+ #define GF_XATTR_TRIGGER_SYNC "glusterfs.geo-rep.trigger-sync"
+ 
+ /* quota xattrs */
+-#define QUOTA_SIZE_KEY "trusted.glusterfs.quota.size"
+-#define QUOTA_LIMIT_KEY "trusted.glusterfs.quota.limit-set"
+-#define QUOTA_LIMIT_OBJECTS_KEY "trusted.glusterfs.quota.limit-objects"
++#define QUOTA_SIZE_KEY "user.glusterfs.quota.size"
++#define QUOTA_LIMIT_KEY "user.glusterfs.quota.limit-set"
++#define QUOTA_LIMIT_OBJECTS_KEY "user.glusterfs.quota.limit-objects"
+ #define VIRTUAL_QUOTA_XATTR_CLEANUP_KEY "glusterfs.quota-xattr-cleanup"
+-#define QUOTA_READ_ONLY_KEY "trusted.glusterfs.quota.read-only"
++#define QUOTA_READ_ONLY_KEY "user.glusterfs.quota.read-only"
+ 
+ /* afr related */
+-#define AFR_XATTR_PREFIX "trusted.afr"
++#define AFR_XATTR_PREFIX "user.afr"
+ 
+ /* Index xlator related */
+ #define GF_XATTROP_INDEX_GFID "glusterfs.xattrop_index_gfid"
+@@ -190,9 +190,9 @@
+ #define GF_AFR_SBRAIN_CHOICE "replica.split-brain-choice"
+ #define GF_AFR_SPB_CHOICE_TIMEOUT "replica.split-brain-choice-timeout"
+ #define GF_AFR_SBRAIN_RESOLVE "replica.split-brain-heal-finalize"
+-#define GF_AFR_ADD_BRICK "trusted.add-brick"
+-#define GF_AFR_REPLACE_BRICK "trusted.replace-brick"
+-#define GF_AFR_DIRTY "trusted.afr.dirty"
++#define GF_AFR_ADD_BRICK "user.add-brick"
++#define GF_AFR_REPLACE_BRICK "user.replace-brick"
++#define GF_AFR_DIRTY "user.afr.dirty"
+ #define GF_XATTROP_ENTRY_OUT "glusterfs.xattrop-entry-delete"
+ #define GF_XATTROP_PURGE_INDEX "glusterfs.xattrop-purge-index"
+ 
+diff --git a/libglusterfs/src/syscall.h b/libglusterfs/src/syscall.h
+index b1bcad1..bbaf627 100644
+--- a/libglusterfs/src/syscall.h
++++ b/libglusterfs/src/syscall.h
+@@ -34,7 +34,7 @@
+ #endif
+ 
+ #ifndef XATTR_TRUSTED_PREFIX
+-#define XATTR_TRUSTED_PREFIX "trusted."
++#define XATTR_TRUSTED_PREFIX "user."
+ #define XATTR_TRUSTED_PREFIX_LEN (sizeof (XATTR_TRUSTED_PREFIX) - 1)
+ #endif
+ 
+diff --git a/libglusterfs/src/xlator.c b/libglusterfs/src/xlator.c
+index 0d09b3f..aaf7069 100644
+--- a/libglusterfs/src/xlator.c
++++ b/libglusterfs/src/xlator.c
+@@ -1049,7 +1049,7 @@ is_gf_log_command (xlator_t *this, const char *name, char *value)
+         gf_boolean_t    syslog_flag = 0;
+         glusterfs_ctx_t *ctx        = NULL;
+ 
+-        if (!strcmp ("trusted.glusterfs.syslog", name)) {
++        if (!strcmp ("user.glusterfs.syslog", name)) {
+                 ret = gf_string2boolean (value, &syslog_flag);
+                 if (ret) {
+                         ret = EOPNOTSUPP;
+@@ -1063,7 +1063,7 @@ is_gf_log_command (xlator_t *this, const char *name, char *value)
+                 goto out;
+         }
+ 
+-        if (fnmatch ("trusted.glusterfs*set-log-level", name, FNM_NOESCAPE))
++        if (fnmatch ("user.glusterfs*set-log-level", name, FNM_NOESCAPE))
+                 goto out;
+ 
+         log_level = glusterd_check_log_level (value);
+@@ -1073,7 +1073,7 @@ is_gf_log_command (xlator_t *this, const char *name, char *value)
+         }
+ 
+         /* Some crude way to change the log-level of process */
+-        if (!strcmp (name, "trusted.glusterfs.set-log-level")) {
++        if (!strcmp (name, "user.glusterfs.set-log-level")) {
+                 gf_msg ("glusterfs", gf_log_get_loglevel(), 0,
+                         LG_MSG_SET_LOG_LEVEL,
+                         "setting log level to %d (old-value=%d)",
+@@ -1083,7 +1083,7 @@ is_gf_log_command (xlator_t *this, const char *name, char *value)
+                 goto out;
+         }
+ 
+-        if (!strcmp (name, "trusted.glusterfs.fuse.set-log-level")) {
++        if (!strcmp (name, "user.glusterfs.fuse.set-log-level")) {
+                 /* */
+                 gf_msg (this->name, gf_log_get_xl_loglevel (this), 0,
+                         LG_MSG_SET_LOG_LEVEL,
+@@ -1102,7 +1102,7 @@ is_gf_log_command (xlator_t *this, const char *name, char *value)
+         trav = ctx->active->top;
+ 
+         while (trav) {
+-                snprintf (key, 1024, "trusted.glusterfs.%s.set-log-level",
++                snprintf (key, 1024, "user.glusterfs.%s.set-log-level",
+                           trav->name);
+                 if (fnmatch (name, key, FNM_NOESCAPE) == 0) {
+                         gf_msg (trav->name, gf_log_get_xl_loglevel (trav), 0,
+diff --git a/tools/gfind_missing_files/gcrawler.c b/tools/gfind_missing_files/gcrawler.c
+index 02b644a..26d13ff 100644
+--- a/tools/gfind_missing_files/gcrawler.c
++++ b/tools/gfind_missing_files/gcrawler.c
+@@ -529,7 +529,7 @@ parse_and_validate_args (int argc, char *argv[])
+         }
+ 
+ #ifndef __FreeBSD__
+-        ret = sys_lgetxattr (basedir, "trusted.glusterfs.volume-id",
++        ret = sys_lgetxattr (basedir, "user.glusterfs.volume-id",
+                              volume_id, 16);
+         if (ret != 16) {
+                 err ("%s:Not a valid brick path.\n", basedir);
+diff --git a/tools/gfind_missing_files/gfid_to_path.py b/tools/gfind_missing_files/gfid_to_path.py
+index 8362f68..3fcea5f 100644
+--- a/tools/gfind_missing_files/gfid_to_path.py
++++ b/tools/gfind_missing_files/gfid_to_path.py
+@@ -126,7 +126,7 @@ def gfid_to_path(gfid):
+     if not path:
+         output_not_found(gfid)
+         return
+-    gfid1 = str(uuid.UUID(bytes=xattr.get(path, "trusted.gfid")))
++    gfid1 = str(uuid.UUID(bytes=xattr.get(path, "user.gfid")))
+     if gfid != gfid1:
+         output_not_found(gfid)
+         return
+diff --git a/tools/glusterfind/src/changelog.py b/tools/glusterfind/src/changelog.py
+index 721b8d0..9bb461f 100644
+--- a/tools/glusterfind/src/changelog.py
++++ b/tools/glusterfind/src/changelog.py
+@@ -104,7 +104,7 @@ def populate_pgfid_and_inodegfid(brick, changelog_data):
+                 changelog_data.inodegfid_add(os.stat(p).st_ino, gfid)
+                 file_xattrs = xattr.list(p)
+                 for x in file_xattrs:
+-                    if x.startswith("trusted.pgfid."):
++                    if x.startswith("user.pgfid."):
+                         # PGFID in pgfid table
+                         changelog_data.pgfid_add(x.split(".")[-1])
+             except (IOError, OSError):
+diff --git a/xlators/cluster/afr/src/afr-inode-write.c b/xlators/cluster/afr/src/afr-inode-write.c
+index 3da3464..987f7bb 100644
+--- a/xlators/cluster/afr/src/afr-inode-write.c
++++ b/xlators/cluster/afr/src/afr-inode-write.c
+@@ -1600,10 +1600,10 @@ afr_setxattr (call_frame_t *frame, xlator_t *this, loc_t *loc, dict_t *dict,
+         int             ret               = -1;
+         int             op_errno          = EINVAL;
+ 
+-        GF_IF_INTERNAL_XATTR_GOTO ("trusted.afr.*", dict,
++        GF_IF_INTERNAL_XATTR_GOTO ("user.afr.*", dict,
+                                    op_errno, out);
+ 
+-        GF_IF_INTERNAL_XATTR_GOTO ("trusted.glusterfs.afr.*", dict,
++        GF_IF_INTERNAL_XATTR_GOTO ("user.glusterfs.afr.*", dict,
+                                    op_errno, out);
+ 
+         ret = afr_handle_special_xattr (this, frame, loc, dict);
+@@ -1715,10 +1715,10 @@ afr_fsetxattr (call_frame_t *frame, xlator_t *this,
+         int               ret               = -1;
+         int               op_errno          = ENOMEM;
+ 
+-        GF_IF_INTERNAL_XATTR_GOTO ("trusted.afr.*", dict,
++        GF_IF_INTERNAL_XATTR_GOTO ("user.afr.*", dict,
+                                    op_errno, out);
+ 
+-        GF_IF_INTERNAL_XATTR_GOTO ("trusted.glusterfs.afr.*", dict,
++        GF_IF_INTERNAL_XATTR_GOTO ("user.glusterfs.afr.*", dict,
+                                    op_errno, out);
+ 
+         transaction_frame = copy_frame (frame);
+@@ -1829,10 +1829,10 @@ afr_removexattr (call_frame_t *frame, xlator_t *this,
+         int              ret               = -1;
+         int              op_errno          = ENOMEM;
+ 
+-        GF_IF_NATIVE_XATTR_GOTO ("trusted.afr.*",
++        GF_IF_NATIVE_XATTR_GOTO ("user.afr.*",
+                                  name, op_errno, out);
+ 
+-        GF_IF_NATIVE_XATTR_GOTO ("trusted.glusterfs.afr.*",
++        GF_IF_NATIVE_XATTR_GOTO ("user.glusterfs.afr.*",
+                                  name, op_errno, out);
+ 
+         transaction_frame = copy_frame (frame);
+@@ -1937,10 +1937,10 @@ afr_fremovexattr (call_frame_t *frame, xlator_t *this, fd_t *fd,
+         int ret = -1;
+         int op_errno = ENOMEM;
+ 
+-        GF_IF_NATIVE_XATTR_GOTO ("trusted.afr.*",
++        GF_IF_NATIVE_XATTR_GOTO ("user.afr.*",
+                                  name, op_errno, out);
+ 
+-        GF_IF_NATIVE_XATTR_GOTO ("trusted.glusterfs.afr.*",
++        GF_IF_NATIVE_XATTR_GOTO ("user.glusterfs.afr.*",
+                                  name, op_errno, out);
+ 
+         transaction_frame = copy_frame (frame);
+diff --git a/xlators/cluster/dht/src/dht-common.c b/xlators/cluster/dht/src/dht-common.c
+index 697091c..ea4a67e 100644
+--- a/xlators/cluster/dht/src/dht-common.c
++++ b/xlators/cluster/dht/src/dht-common.c
+@@ -3256,8 +3256,8 @@ dht_getxattr_cbk (call_frame_t *frame, void *cookie, xlator_t *this,
+ 
+                 if (frame->root->pid >= 0) {
+                         GF_REMOVE_INTERNAL_XATTR
+-                                ("trusted.glusterfs.quota*", xattr);
+-                        GF_REMOVE_INTERNAL_XATTR("trusted.pgfid*", xattr);
++                                ("user.glusterfs.quota*", xattr);
++                        GF_REMOVE_INTERNAL_XATTR("user.pgfid*", xattr);
+                 }
+ 
+                 local->op_ret = 0;
+diff --git a/xlators/cluster/dht/src/dht-common.h b/xlators/cluster/dht/src/dht-common.h
+index ffe53d9..0f4fb57 100644
+--- a/xlators/cluster/dht/src/dht-common.h
++++ b/xlators/cluster/dht/src/dht-common.h
+@@ -24,8 +24,8 @@
+ #define _DHT_H
+ 
+ #define GF_XATTR_FIX_LAYOUT_KEY         "distribute.fix.layout"
+-#define GF_XATTR_TIER_LAYOUT_FIXED_KEY  "trusted.tier.fix.layout.complete"
+-#define GF_XATTR_FILE_MIGRATE_KEY       "trusted.distribute.migrate-data"
++#define GF_XATTR_TIER_LAYOUT_FIXED_KEY  "user.tier.fix.layout.complete"
++#define GF_XATTR_FILE_MIGRATE_KEY       "user.distribute.migrate-data"
+ #define GF_DHT_LOOKUP_UNHASHED_ON       1
+ #define GF_DHT_LOOKUP_UNHASHED_AUTO     2
+ #define DHT_PATHINFO_HEADER             "DISTRIBUTE:"
+diff --git a/xlators/cluster/dht/src/dht-shared.c b/xlators/cluster/dht/src/dht-shared.c
+index f13762e..866adec 100644
+--- a/xlators/cluster/dht/src/dht-shared.c
++++ b/xlators/cluster/dht/src/dht-shared.c
+@@ -986,7 +986,7 @@ struct volume_options options[] = {
+ 
+         { .key = {"xattr-name"},
+           .type = GF_OPTION_TYPE_STR,
+-          .default_value = "trusted.glusterfs.dht",
++          .default_value = "user.glusterfs.dht",
+           .description = "Base for extended attributes used by this "
+           "translator instance, to avoid conflicts with others above or "
+           "below it."
+diff --git a/xlators/cluster/ec/src/ec-combine.c b/xlators/cluster/ec/src/ec-combine.c
+index f949dbd..6bf2cd2 100644
+--- a/xlators/cluster/ec/src/ec-combine.c
++++ b/xlators/cluster/ec/src/ec-combine.c
+@@ -20,7 +20,7 @@
+ #include "ec-messages.h"
+ #include "quota-common-utils.h"
+ 
+-#define EC_QUOTA_PREFIX "trusted.glusterfs.quota."
++#define EC_QUOTA_PREFIX "user.glusterfs.quota."
+ 
+ struct _ec_dict_info;
+ typedef struct _ec_dict_info ec_dict_info_t;
+diff --git a/xlators/cluster/ec/src/ec.h b/xlators/cluster/ec/src/ec.h
+index 648d444..8906d6d 100644
+--- a/xlators/cluster/ec/src/ec.h
++++ b/xlators/cluster/ec/src/ec.h
+@@ -11,7 +11,7 @@
+ #ifndef __EC_H__
+ #define __EC_H__
+ 
+-#define EC_XATTR_PREFIX  "trusted.ec."
++#define EC_XATTR_PREFIX  "user.ec."
+ #define EC_XATTR_CONFIG  EC_XATTR_PREFIX"config"
+ #define EC_XATTR_SIZE    EC_XATTR_PREFIX"size"
+ #define EC_XATTR_VERSION EC_XATTR_PREFIX"version"
+diff --git a/xlators/cluster/stripe/src/stripe-helpers.c b/xlators/cluster/stripe/src/stripe-helpers.c
+index 217f4d2..751b56b 100644
+--- a/xlators/cluster/stripe/src/stripe-helpers.c
++++ b/xlators/cluster/stripe/src/stripe-helpers.c
+@@ -350,7 +350,7 @@ stripe_ctx_handle (xlator_t *this, call_frame_t *prev, stripe_local_t *local,
+                 local->fctx->static_array = 0;
+         }
+         /* Stripe block size */
+-        sprintf (key, "trusted.%s.stripe-size", this->name);
++        sprintf (key, "user.%s.stripe-size", this->name);
+         data = dict_get (dict, key);
+         if (!data) {
+                 local->xattr_self_heal_needed = 1;
+@@ -371,7 +371,7 @@ stripe_ctx_handle (xlator_t *this, call_frame_t *prev, stripe_local_t *local,
+         }
+ 
+         /* Stripe count */
+-        sprintf (key, "trusted.%s.stripe-count", this->name);
++        sprintf (key, "user.%s.stripe-count", this->name);
+         data = dict_get (dict, key);
+ 
+         if (!data) {
+@@ -410,7 +410,7 @@ stripe_ctx_handle (xlator_t *this, call_frame_t *prev, stripe_local_t *local,
+         }
+ 
+         /* index */
+-        sprintf (key, "trusted.%s.stripe-index", this->name);
++        sprintf (key, "user.%s.stripe-index", this->name);
+         data = dict_get (dict, key);
+         if (!data) {
+                 local->xattr_self_heal_needed = 1;
+@@ -431,7 +431,7 @@ stripe_ctx_handle (xlator_t *this, call_frame_t *prev, stripe_local_t *local,
+                         local->fctx->xl_array[index] = prev->this;
+         }
+ 
+-	sprintf(key, "trusted.%s.stripe-coalesce", this->name);
++	sprintf(key, "user.%s.stripe-coalesce", this->name);
+ 	data = dict_get(dict, key);
+ 	if (!data) {
+ 		/*
+@@ -459,7 +459,7 @@ stripe_xattr_request_build (xlator_t *this, dict_t *dict, uint64_t stripe_size,
+         char            key[256]       = {0,};
+         int32_t         ret             = -1;
+ 
+-        sprintf (key, "trusted.%s.stripe-size", this->name);
++        sprintf (key, "user.%s.stripe-size", this->name);
+         ret = dict_set_int64 (dict, key, stripe_size);
+         if (ret) {
+                 gf_log (this->name, GF_LOG_WARNING,
+@@ -467,7 +467,7 @@ stripe_xattr_request_build (xlator_t *this, dict_t *dict, uint64_t stripe_size,
+                 goto out;
+         }
+ 
+-        sprintf (key, "trusted.%s.stripe-count", this->name);
++        sprintf (key, "user.%s.stripe-count", this->name);
+         ret = dict_set_int32 (dict, key, stripe_count);
+         if (ret) {
+                 gf_log (this->name, GF_LOG_WARNING,
+@@ -475,7 +475,7 @@ stripe_xattr_request_build (xlator_t *this, dict_t *dict, uint64_t stripe_size,
+                 goto out;
+         }
+ 
+-        sprintf (key, "trusted.%s.stripe-index", this->name);
++        sprintf (key, "user.%s.stripe-index", this->name);
+         ret = dict_set_int32 (dict, key, stripe_index);
+         if (ret) {
+                 gf_log (this->name, GF_LOG_WARNING,
+@@ -483,7 +483,7 @@ stripe_xattr_request_build (xlator_t *this, dict_t *dict, uint64_t stripe_size,
+                 goto out;
+         }
+ 
+-	sprintf(key, "trusted.%s.stripe-coalesce", this->name);
++	sprintf(key, "user.%s.stripe-coalesce", this->name);
+ 	ret = dict_set_int32(dict, key, stripe_coalesce);
+ 	if (ret) {
+ 		gf_log(this->name, GF_LOG_WARNING,
+diff --git a/xlators/cluster/stripe/src/stripe.c b/xlators/cluster/stripe/src/stripe.c
+index ae175fa..316c999 100644
+--- a/xlators/cluster/stripe/src/stripe.c
++++ b/xlators/cluster/stripe/src/stripe.c
+@@ -4507,7 +4507,7 @@ stripe_setxattr (call_frame_t *frame, xlator_t *this,
+         VALIDATE_OR_GOTO (loc, err);
+         VALIDATE_OR_GOTO (loc->inode, err);
+ 
+-        GF_IF_INTERNAL_XATTR_GOTO ("trusted.*stripe*", dict,
++        GF_IF_INTERNAL_XATTR_GOTO ("user.*stripe*", dict,
+                                    op_errno, err);
+ 
+         priv = this->private;
+@@ -4670,7 +4670,7 @@ stripe_fsetxattr (call_frame_t *frame, xlator_t *this, fd_t *fd,
+         VALIDATE_OR_GOTO (this, err);
+         VALIDATE_OR_GOTO (fd, err);
+ 
+-        GF_IF_INTERNAL_XATTR_GOTO ("trusted.*stripe*", dict,
++        GF_IF_INTERNAL_XATTR_GOTO ("user.*stripe*", dict,
+                                    op_errno, err);
+ 
+         is_spl = stripe_fsetxattr_is_special (dict);
+@@ -4712,7 +4712,7 @@ stripe_removexattr (call_frame_t *frame, xlator_t *this,
+ 
+         VALIDATE_OR_GOTO (this, err);
+ 
+-        GF_IF_NATIVE_XATTR_GOTO ("trusted.*stripe*",
++        GF_IF_NATIVE_XATTR_GOTO ("user.*stripe*",
+                                  name, op_errno, err);
+ 
+         VALIDATE_OR_GOTO (frame, err);
+@@ -4748,7 +4748,7 @@ stripe_fremovexattr (call_frame_t *frame, xlator_t *this,
+         VALIDATE_OR_GOTO (this, err);
+         VALIDATE_OR_GOTO (fd, err);
+ 
+-        GF_IF_NATIVE_XATTR_GOTO ("trusted.*stripe*",
++        GF_IF_NATIVE_XATTR_GOTO ("user.*stripe*",
+                                  name, op_errno, err);
+ 
+         STACK_WIND (frame, stripe_fremovexattr_cbk,
+@@ -5309,10 +5309,10 @@ stripe_internal_getxattr_cbk (call_frame_t *frame, void *cookie, xlator_t *this,
+         if (!xattr || (op_ret == -1))
+             goto out;
+ 
+-        sprintf (size_key, "trusted.%s.stripe-size", this->name);
+-        sprintf (count_key, "trusted.%s.stripe-count", this->name);
+-        sprintf (index_key, "trusted.%s.stripe-index", this->name);
+-	sprintf (coalesce_key, "trusted.%s.stripe-coalesce", this->name);
++        sprintf (size_key, "user.%s.stripe-size", this->name);
++        sprintf (count_key, "user.%s.stripe-count", this->name);
++        sprintf (index_key, "user.%s.stripe-index", this->name);
++	sprintf (coalesce_key, "user.%s.stripe-coalesce", this->name);
+ 
+         dict_del (xattr, size_key);
+         dict_del (xattr, count_key);
+diff --git a/xlators/encryption/crypt/src/crypt-common.h b/xlators/encryption/crypt/src/crypt-common.h
+index 7c212ad..891e51f 100644
+--- a/xlators/encryption/crypt/src/crypt-common.h
++++ b/xlators/encryption/crypt/src/crypt-common.h
+@@ -14,13 +14,13 @@
+ #define INVAL_SUBVERSION_NUMBER (0xff)
+ #define CRYPT_INVAL_OP   (GF_FOP_NULL)
+ 
+-#define CRYPTO_FORMAT_PREFIX  "trusted.glusterfs.crypt.att.cfmt"
+-#define FSIZE_XATTR_PREFIX    "trusted.glusterfs.crypt.att.size"
+-#define SUBREQ_PREFIX         "trusted.glusterfs.crypt.msg.sreq"
+-#define FSIZE_MSG_PREFIX      "trusted.glusterfs.crypt.msg.size"
+-#define DE_MSG_PREFIX         "trusted.glusterfs.crypt.msg.dent"
+-#define REQUEST_ID_PREFIX     "trusted.glusterfs.crypt.msg.rqid"
+-#define MSGFLAGS_PREFIX       "trusted.glusterfs.crypt.msg.xfgs"
++#define CRYPTO_FORMAT_PREFIX  "user.glusterfs.crypt.att.cfmt"
++#define FSIZE_XATTR_PREFIX    "user.glusterfs.crypt.att.size"
++#define SUBREQ_PREFIX         "user.glusterfs.crypt.msg.sreq"
++#define FSIZE_MSG_PREFIX      "user.glusterfs.crypt.msg.size"
++#define DE_MSG_PREFIX         "user.glusterfs.crypt.msg.dent"
++#define REQUEST_ID_PREFIX     "user.glusterfs.crypt.msg.rqid"
++#define MSGFLAGS_PREFIX       "user.glusterfs.crypt.msg.xfgs"
+ 
+ 
+ /* messages for crypt_open() */
+diff --git a/xlators/encryption/crypt/src/crypt.c b/xlators/encryption/crypt/src/crypt.c
+index 2982bb2..3c26888 100644
+--- a/xlators/encryption/crypt/src/crypt.c
++++ b/xlators/encryption/crypt/src/crypt.c
+@@ -2623,7 +2623,7 @@ static int32_t crypt_fsetxattr(call_frame_t *frame,
+ 			       dict_t *dict,
+ 			       int32_t flags, dict_t *xdata)
+ {
+-	dict_foreach_fnmatch(dict, "trusted.glusterfs.crypt*",
++	dict_foreach_fnmatch(dict, "user.glusterfs.crypt*",
+ 			     filter_crypt_xattr, NULL);
+ 	STACK_WIND(frame,
+ 		   default_fsetxattr_cbk,
+@@ -2645,7 +2645,7 @@ static int32_t crypt_setxattr(call_frame_t *frame,
+ 			      dict_t *dict,
+ 			      int32_t flags, dict_t *xdata)
+ {
+-	dict_foreach_fnmatch(dict, "trusted.glusterfs.crypt*",
++	dict_foreach_fnmatch(dict, "user.glusterfs.crypt*",
+ 			     filter_crypt_xattr, NULL);
+ 	STACK_WIND(frame,
+ 		   default_setxattr_cbk,
+diff --git a/xlators/features/bit-rot/src/stub/bit-rot-common.h b/xlators/features/bit-rot/src/stub/bit-rot-common.h
+index 2afc9f4..95638cc 100644
+--- a/xlators/features/bit-rot/src/stub/bit-rot-common.h
++++ b/xlators/features/bit-rot/src/stub/bit-rot-common.h
+@@ -125,12 +125,12 @@ typedef enum {
+ } br_signature_type;
+ 
+ /* BitRot stub start time (virtual xattr) */
+-#define GLUSTERFS_GET_BR_STUB_INIT_TIME  "trusted.glusterfs.bit-rot.stub-init"
++#define GLUSTERFS_GET_BR_STUB_INIT_TIME  "user.glusterfs.bit-rot.stub-init"
+ 
+ /* signing/reopen hint */
+ #define BR_OBJECT_RESIGN 0
+ #define BR_OBJECT_REOPEN  1
+-#define BR_REOPEN_SIGN_HINT_KEY  "trusted.glusterfs.bit-rot.reopen-hint"
++#define BR_REOPEN_SIGN_HINT_KEY  "user.glusterfs.bit-rot.reopen-hint"
+ 
+ static inline int
+ br_is_signature_type_valid (int8_t signaturetype)
+diff --git a/xlators/features/changelog/src/changelog-misc.h b/xlators/features/changelog/src/changelog-misc.h
+index 778f79c..bc07c04 100644
+--- a/xlators/features/changelog/src/changelog-misc.h
++++ b/xlators/features/changelog/src/changelog-misc.h
+@@ -18,8 +18,8 @@
+ #define CHANGELOG_FILE_NAME "CHANGELOG"
+ #define HTIME_FILE_NAME "HTIME"
+ #define CSNAP_FILE_NAME "CHANGELOG.SNAP"
+-#define HTIME_KEY "trusted.glusterfs.htime"
+-#define HTIME_CURRENT "trusted.glusterfs.current_htime"
++#define HTIME_KEY "user.glusterfs.htime"
++#define HTIME_CURRENT "user.glusterfs.current_htime"
+ #define HTIME_INITIAL_VALUE "0:0"
+ 
+ #define CHANGELOG_VERSION_MAJOR  1
+diff --git a/xlators/features/changelog/src/changelog.c b/xlators/features/changelog/src/changelog.c
+index a8bd6bd..e6187af 100644
+--- a/xlators/features/changelog/src/changelog.c
++++ b/xlators/features/changelog/src/changelog.c
+@@ -909,7 +909,7 @@ changelog_mknod (call_frame_t *frame,
+          * 1. Whether internal fop AND
+          * 2. Whether tier rebalance process activity (this will help in
+          * recording mknod if tier rebalance process calls this mknod) */
+-        if (!(dict_get (xdata, "trusted.tier.tier-dht.linkto"))) {
++        if (!(dict_get (xdata, "user.tier.tier-dht.linkto"))) {
+                 CHANGELOG_IF_INTERNAL_FOP_THEN_GOTO (frame, xdata, wind);
+                 if (frame->root->pid == GF_CLIENT_PID_TIER_DEFRAG)
+                         goto wind;
+diff --git a/xlators/features/marker/src/marker-quota.h b/xlators/features/marker/src/marker-quota.h
+index 51e0625..103af47 100644
+--- a/xlators/features/marker/src/marker-quota.h
++++ b/xlators/features/marker/src/marker-quota.h
+@@ -16,8 +16,8 @@
+ #include "quota-common-utils.h"
+ #include "call-stub.h"
+ 
+-#define QUOTA_XATTR_PREFIX "trusted.glusterfs"
+-#define QUOTA_DIRTY_KEY "trusted.glusterfs.quota.dirty"
++#define QUOTA_XATTR_PREFIX "user.glusterfs"
++#define QUOTA_DIRTY_KEY "user.glusterfs.quota.dirty"
+ 
+ #define CONTRIBUTION  "contri"
+ #define QUOTA_KEY_MAX 512
+diff --git a/xlators/features/marker/src/marker.c b/xlators/features/marker/src/marker.c
+index b51b9cc..557a20d 100644
+--- a/xlators/features/marker/src/marker.c
++++ b/xlators/features/marker/src/marker.c
+@@ -387,7 +387,7 @@ _is_quota_internal_xattr (dict_t *d, char *k, data_t *v, void *data)
+                         return _gf_false;
+         }
+ 
+-        if (fnmatch ("trusted.glusterfs.quota*", k, 0) == 0)
++        if (fnmatch ("user.glusterfs.quota*", k, 0) == 0)
+                 return _gf_true;
+ 
+         /* It would be nice if posix filters pgfid xattrs. But since marker
+@@ -452,12 +452,12 @@ marker_getxattr_cbk (call_frame_t *frame, void *cookie, xlator_t *this,
+ 
+                 /* If the getxattr is from a non special client, then do not
+                    copy the quota related xattrs (except the quota limit key
+-                   i.e trusted.glusterfs.quota.limit-set which has been set by
++                   i.e user.glusterfs.quota.limit-set which has been set by
+                    glusterd on the directory on which quota limit is set.) for
+                    directories. Let the healing of xattrs happen upon lookup.
+-                   NOTE: setting of trusted.glusterfs.quota.limit-set as of now
++                   NOTE: setting of user.glusterfs.quota.limit-set as of now
+                    happens from glusterd. It should be moved to quotad. Also
+-                   trusted.glusterfs.quota.limit-set is set on directory which
++                   user.glusterfs.quota.limit-set is set on directory which
+                    is permanent till quota is removed on that directory or limit
+                    is changed. So let that xattr be healed by other xlators
+                    properly whenever directory healing is done.
+@@ -2326,7 +2326,7 @@ err:
+ 
+ 
+ /* when a call from the special client is received on
+- * key trusted.glusterfs.volume-mark with value "RESET"
++ * key user.glusterfs.volume-mark with value "RESET"
+  * or if the value is 0length, update the change the
+  * access time and modification time via touching the
+  * timestamp file.
+@@ -2347,7 +2347,7 @@ call_from_sp_client_to_reset_tmfile (call_frame_t *frame,
+ 
+         priv = this->private;
+ 
+-        data = dict_get (dict, "trusted.glusterfs.volume-mark");
++        data = dict_get (dict, "user.glusterfs.volume-mark");
+         if (data == NULL)
+                 return -1;
+ 
+@@ -2492,7 +2492,7 @@ quota_xattr_cleaner (void *args)
+                 goto out;
+         }
+ 
+-	ret = dict_foreach_fnmatch (xdata, "trusted.glusterfs.quota.*",
++	ret = dict_foreach_fnmatch (xdata, "user.glusterfs.quota.*",
+                                     remove_quota_keys, frame);
+         if (ret == -1) {
+                 ret = -errno;
+diff --git a/xlators/features/marker/src/marker.h b/xlators/features/marker/src/marker.h
+index 4726880..a815fe1 100644
+--- a/xlators/features/marker/src/marker.h
++++ b/xlators/features/marker/src/marker.h
+@@ -16,7 +16,7 @@
+ #include "compat-uuid.h"
+ #include "call-stub.h"
+ 
+-#define MARKER_XATTR_PREFIX "trusted.glusterfs"
++#define MARKER_XATTR_PREFIX "user.glusterfs"
+ #define XTIME               "xtime"
+ #define VOLUME_MARK         "volume-mark"
+ #define VOLUME_UUID         "volume-uuid"
+diff --git a/xlators/features/quota/src/quota.c b/xlators/features/quota/src/quota.c
+index 7a84aeb..227fa53 100644
+--- a/xlators/features/quota/src/quota.c
++++ b/xlators/features/quota/src/quota.c
+@@ -3221,7 +3221,7 @@ quota_fgetxattr (call_frame_t *frame, xlator_t *this, fd_t *fd,
+ {
+         int32_t ret     = 0;
+ 
+-        if (name && strcasecmp (name, "trusted.limit.list") == 0) {
++        if (name && strcasecmp (name, "user.limit.list") == 0) {
+                 ret = quota_send_dir_limit_to_cli (frame, this, fd->inode,
+                                                    name);
+                 if (ret == 0) {
+@@ -3241,7 +3241,7 @@ quota_getxattr (call_frame_t *frame, xlator_t *this, loc_t *loc,
+ {
+         int32_t ret     = 0;
+ 
+-        if ((name != NULL) && strcasecmp (name, "trusted.limit.list") == 0) {
++        if ((name != NULL) && strcasecmp (name, "user.limit.list") == 0) {
+                 ret = quota_send_dir_limit_to_cli (frame, this, loc->inode,
+                                                    name);
+                 if (ret == 0)
+@@ -4011,9 +4011,9 @@ quota_setxattr (call_frame_t *frame, xlator_t *this,
+                 internal_fop = _gf_true;
+ 
+         if (frame->root->pid >= 0 && internal_fop == _gf_false) {
+-                GF_IF_INTERNAL_XATTR_GOTO ("trusted.glusterfs.quota*", dict,
++                GF_IF_INTERNAL_XATTR_GOTO ("user.glusterfs.quota*", dict,
+                                            op_errno, err);
+-                GF_IF_INTERNAL_XATTR_GOTO ("trusted.pgfid*", dict, op_errno,
++                GF_IF_INTERNAL_XATTR_GOTO ("user.pgfid*", dict, op_errno,
+                                            err);
+         }
+ 
+@@ -4111,9 +4111,9 @@ quota_fsetxattr (call_frame_t *frame, xlator_t *this, fd_t *fd,
+         VALIDATE_OR_GOTO (fd, err);
+ 
+         if (0 <= frame->root->pid) {
+-                GF_IF_INTERNAL_XATTR_GOTO ("trusted.glusterfs.quota*",
++                GF_IF_INTERNAL_XATTR_GOTO ("user.glusterfs.quota*",
+                                             dict, op_errno, err);
+-                GF_IF_INTERNAL_XATTR_GOTO ("trusted.pgfid*", dict,
++                GF_IF_INTERNAL_XATTR_GOTO ("user.pgfid*", dict,
+                                             op_errno, err);
+         }
+ 
+@@ -4181,9 +4181,9 @@ quota_removexattr (call_frame_t *frame, xlator_t *this,
+          * Hence its ok that we don't allow removexattr on quota keys here.
+          */
+         if (frame->root->pid >= 0) {
+-                GF_IF_NATIVE_XATTR_GOTO ("trusted.glusterfs.quota*",
++                GF_IF_NATIVE_XATTR_GOTO ("user.glusterfs.quota*",
+                                          name, op_errno, err);
+-                GF_IF_NATIVE_XATTR_GOTO ("trusted.pgfid*", name,
++                GF_IF_NATIVE_XATTR_GOTO ("user.pgfid*", name,
+                                          op_errno, err);
+         }
+ 
+@@ -4232,9 +4232,9 @@ quota_fremovexattr (call_frame_t *frame, xlator_t *this,
+         VALIDATE_OR_GOTO (fd, err);
+ 
+         if (frame->root->pid >= 0) {
+-                GF_IF_NATIVE_XATTR_GOTO ("trusted.glusterfs.quota*",
++                GF_IF_NATIVE_XATTR_GOTO ("user.glusterfs.quota*",
+                                          name, op_errno, err);
+-                GF_IF_NATIVE_XATTR_GOTO ("trusted.pgfid*", name,
++                GF_IF_NATIVE_XATTR_GOTO ("user.pgfid*", name,
+                                          op_errno, err);
+         }
+         STACK_WIND (frame, quota_fremovexattr_cbk,
+diff --git a/xlators/features/read-only/src/worm-helper.c b/xlators/features/read-only/src/worm-helper.c
+index 425e481..3ca602c 100644
+--- a/xlators/features/read-only/src/worm-helper.c
++++ b/xlators/features/read-only/src/worm-helper.c
+@@ -49,7 +49,7 @@ worm_init_state (xlator_t *this, gf_boolean_t fop_with_fd, void *file_ptr)
+                 gf_log (this->name, GF_LOG_ERROR, "Error creating the dict");
+                 goto out;
+         }
+-        ret = dict_set_uint64 (dict, "trusted.start_time", start_time);
++        ret = dict_set_uint64 (dict, "user.start_time", start_time);
+         if (ret) {
+                 gf_log (this->name, GF_LOG_ERROR, "Error in setting the dict");
+                 goto out;
+@@ -140,15 +140,15 @@ worm_get_state (xlator_t *this, gf_boolean_t fop_with_fd, void *file_ptr,
+ 
+         if (fop_with_fd)
+                 ret = syncop_fgetxattr (this, (fd_t *)file_ptr, &dict,
+-                                        "trusted.reten_state", NULL, NULL);
++                                        "user.reten_state", NULL, NULL);
+         else
+                 ret = syncop_getxattr (this, (loc_t *)file_ptr, &dict,
+-                                       "trusted.reten_state", NULL, NULL);
++                                       "user.reten_state", NULL, NULL);
+         if (ret < 0 || !dict) {
+                 ret = -1;
+                 goto out;
+         }
+-        ret = dict_get_str (dict, "trusted.reten_state", &val);
++        ret = dict_get_str (dict, "user.reten_state", &val);
+         if (ret) {
+                 ret = -2;
+                 gf_log (this->name, GF_LOG_ERROR, "Empty val");
+@@ -270,7 +270,7 @@ gf_worm_set_xattr (xlator_t *this, worm_reten_state_t *reten_state,
+                 gf_log (this->name, GF_LOG_ERROR, "Error creating the dict");
+                 goto out;
+         }
+-        ret = dict_set_str (dict, "trusted.reten_state", val);
++        ret = dict_set_str (dict, "user.reten_state", val);
+         if (ret) {
+                 gf_log (this->name, GF_LOG_ERROR, "Error in setting the dict");
+                 goto out;
+@@ -316,17 +316,17 @@ gf_worm_state_transition (xlator_t *this, gf_boolean_t fop_with_fd,
+ 
+         if (fop_with_fd)
+                 ret = syncop_fgetxattr (this, (fd_t *)file_ptr, &dict,
+-                                        "trusted.start_time", NULL, NULL);
++                                        "user.start_time", NULL, NULL);
+         else
+                 ret = syncop_getxattr (this, (loc_t *)file_ptr, &dict,
+-                                       "trusted.start_time", NULL, NULL);
++                                       "user.start_time", NULL, NULL);
+         if (ret < 0 || !dict) {
+                 op_errno = ret;
+                 gf_msg (this->name, GF_LOG_ERROR, -ret, 0,
+                         "Error getting xattr");
+                 goto out;
+         }
+-        ret = dict_get_uint64 (dict, "trusted.start_time", &start_time);
++        ret = dict_get_uint64 (dict, "user.start_time", &start_time);
+         if (ret) {
+                 op_errno = ret;
+                 gf_msg (this->name, GF_LOG_ERROR, -ret, 0,
+@@ -401,10 +401,10 @@ is_wormfile (xlator_t *this, gf_boolean_t fop_with_fd, void *file_ptr)
+ 
+         if (fop_with_fd)
+                 ret = syncop_fgetxattr (this, (fd_t *)file_ptr, &dict,
+-                                       "trusted.worm_file", NULL, NULL);
++                                       "user.worm_file", NULL, NULL);
+         else
+                 ret = syncop_getxattr (this, (loc_t *)file_ptr, &dict,
+-                                       "trusted.worm_file", NULL, NULL);
++                                       "user.worm_file", NULL, NULL);
+         if (dict) {
+                 ret = 0;
+                 dict_unref (dict);
+diff --git a/xlators/features/read-only/src/worm.c b/xlators/features/read-only/src/worm.c
+index eec3b38..69a7966 100644
+--- a/xlators/features/read-only/src/worm.c
++++ b/xlators/features/read-only/src/worm.c
+@@ -410,7 +410,7 @@ worm_create_cbk (call_frame_t *frame, void *cookie, xlator_t *this,
+                                 "dict");
+                         goto out;
+                 }
+-                ret = dict_set_int8 (dict, "trusted.worm_file", 1);
++                ret = dict_set_int8 (dict, "user.worm_file", 1);
+                 if (ret) {
+                         gf_log (this->name, GF_LOG_ERROR, "Error in setting "
+                                 "the dict");
+diff --git a/xlators/features/shard/src/shard.h b/xlators/features/shard/src/shard.h
+index 8303a2c..75f4281 100644
+--- a/xlators/features/shard/src/shard.h
++++ b/xlators/features/shard/src/shard.h
+@@ -19,8 +19,8 @@
+ #define GF_SHARD_DIR ".shard"
+ #define SHARD_MIN_BLOCK_SIZE  (4 * GF_UNIT_MB)
+ #define SHARD_MAX_BLOCK_SIZE  (4 * GF_UNIT_TB)
+-#define SHARD_XATTR_PREFIX "trusted.glusterfs.shard."
+-#define GF_XATTR_SHARD_BLOCK_SIZE "trusted.glusterfs.shard.block-size"
++#define SHARD_XATTR_PREFIX "user.glusterfs.shard."
++#define GF_XATTR_SHARD_BLOCK_SIZE "user.glusterfs.shard.block-size"
+ #define SHARD_INODE_LRU_LIMIT 4096
+ #define SHARD_MAX_INODES 16384
+ /**
+diff --git a/xlators/lib/src/libxlator.h b/xlators/lib/src/libxlator.h
+index 53ea404..5f7a947 100644
+--- a/xlators/lib/src/libxlator.h
++++ b/xlators/lib/src/libxlator.h
+@@ -19,7 +19,7 @@
+ #include "compat-errno.h"
+ 
+ 
+-#define MARKER_XATTR_PREFIX "trusted.glusterfs"
++#define MARKER_XATTR_PREFIX "user.glusterfs"
+ #define XTIME               "xtime"
+ #define VOLUME_MARK         "volume-mark"
+ #define GF_XATTR_MARKER_KEY MARKER_XATTR_PREFIX "." VOLUME_MARK
+diff --git a/xlators/mgmt/glusterd/src/glusterd-rebalance.c b/xlators/mgmt/glusterd/src/glusterd-rebalance.c
+index bc6cdde..9e219c2 100644
+--- a/xlators/mgmt/glusterd/src/glusterd-rebalance.c
++++ b/xlators/mgmt/glusterd/src/glusterd-rebalance.c
+@@ -288,7 +288,7 @@ glusterd_handle_defrag_start (glusterd_volinfo_t *volinfo, char *op_errstr,
+         if (volinfo->type == GF_CLUSTER_TYPE_TIER) {
+                 runner_add_arg (&runner, "--xlator-option");
+                 runner_argprintf (&runner,
+-                                  "*tier-dht.xattr-name=trusted.tier.tier-dht");
++                                  "*tier-dht.xattr-name=user.tier.tier-dht");
+         }
+ 
+         runner_add_arg (&runner, "--xlator-option");
+diff --git a/xlators/mgmt/glusterd/src/glusterd-tierd-svc.c b/xlators/mgmt/glusterd/src/glusterd-tierd-svc.c
+index bfc879a..61e34a7 100644
+--- a/xlators/mgmt/glusterd/src/glusterd-tierd-svc.c
++++ b/xlators/mgmt/glusterd/src/glusterd-tierd-svc.c
+@@ -331,7 +331,7 @@ glusterd_tierdsvc_start (glusterd_svc_t *svc, int flags)
+                          "--xlator-option", "*replicate*.entry-self-heal=off",
+                          "--xlator-option", "*dht.readdir-optimize=on",
+                          "--xlator-option",
+-                         "*tier-dht.xattr-name=trusted.tier.tier-dht",
++                         "*tier-dht.xattr-name=user.tier.tier-dht",
+                          NULL);
+ 
+ 
+diff --git a/xlators/mgmt/glusterd/src/glusterd-utils.c b/xlators/mgmt/glusterd/src/glusterd-utils.c
+index b6f001a..0329fa0 100644
+--- a/xlators/mgmt/glusterd/src/glusterd-utils.c
++++ b/xlators/mgmt/glusterd/src/glusterd-utils.c
+@@ -6733,7 +6733,7 @@ glusterd_check_and_set_brick_xattr (char *host, char *path, uuid_t uuid,
+         int             flags           = 0;
+ 
+         /* Check for xattr support in backend fs */
+-        ret = sys_lsetxattr (path, "trusted.glusterfs.test",
++        ret = sys_lsetxattr (path, "user.glusterfs.test",
+                              "working", 8, 0);
+         if (ret == -1) {
+                 snprintf (msg, sizeof (msg), "Glusterfs is not"
+@@ -6743,7 +6743,7 @@ glusterd_check_and_set_brick_xattr (char *host, char *path, uuid_t uuid,
+                 goto out;
+ 
+         } else {
+-                sys_lremovexattr (path, "trusted.glusterfs.test");
++                sys_lremovexattr (path, "user.glusterfs.test");
+         }
+ 
+         ret = glusterd_is_path_in_use (path, &in_use, op_errstr);
+diff --git a/xlators/mgmt/glusterd/src/glusterd-volgen.c b/xlators/mgmt/glusterd/src/glusterd-volgen.c
+index 0591614..4fde7a0 100644
+--- a/xlators/mgmt/glusterd/src/glusterd-volgen.c
++++ b/xlators/mgmt/glusterd/src/glusterd-volgen.c
+@@ -1975,7 +1975,7 @@ brick_graph_add_index (volgen_graph_t *graph, glusterd_volinfo_t *volinfo,
+                 goto out;
+         if (volinfo->type == GF_CLUSTER_TYPE_DISPERSE) {
+                 ret = xlator_set_option (xl, "xattrop64-watchlist",
+-                                         "trusted.ec.dirty");
++                                         "user.ec.dirty");
+                 if (ret)
+                         goto out;
+         }
+@@ -1983,10 +1983,10 @@ brick_graph_add_index (volgen_graph_t *graph, glusterd_volinfo_t *volinfo,
+             volinfo->type == GF_CLUSTER_TYPE_REPLICATE ||
+             volinfo->type == GF_CLUSTER_TYPE_NONE)) {
+                 ret = xlator_set_option (xl, "xattrop-dirty-watchlist",
+-                                         "trusted.afr.dirty");
++                                         "user.afr.dirty");
+                 if (ret)
+                         goto out;
+-                ret = gf_asprintf (&pending_xattr, "trusted.afr.%s-",
++                ret = gf_asprintf (&pending_xattr, "user.afr.%s-",
+                                    volinfo->volname);
+                 if (ret < 0)
+                         goto out;
+@@ -4043,7 +4043,7 @@ volume_volgen_graph_build_clusters_tier (volgen_graph_t *graph,
+                 goto out;
+ 
+         /*Each dht/tier layer must have a different xattr name*/
+-        ret = xlator_set_option(xl, "xattr-name", "trusted.tier.tier-dht");
++        ret = xlator_set_option(xl, "xattr-name", "user.tier.tier-dht");
+         if (ret)
+                 goto out;
+ 
+diff --git a/xlators/mount/fuse/src/fuse-helpers.c b/xlators/mount/fuse/src/fuse-helpers.c
+index b65e6eb..2fe8366 100644
+--- a/xlators/mount/fuse/src/fuse-helpers.c
++++ b/xlators/mount/fuse/src/fuse-helpers.c
+@@ -577,7 +577,7 @@ fuse_xattr_alloc_default (char *okey, char **nkey)
+         return ret;
+ }
+ 
+-#define PRIV_XA_NS   "trusted"
++#define PRIV_XA_NS   "user"
+ #define UNPRIV_XA_NS "system"
+ 
+ int
+diff --git a/xlators/mount/fuse/utils/mount.glusterfs.in b/xlators/mount/fuse/utils/mount.glusterfs.in
+index 6c4cdfe..ea7e253 100755
+--- a/xlators/mount/fuse/utils/mount.glusterfs.in
++++ b/xlators/mount/fuse/utils/mount.glusterfs.in
+@@ -337,7 +337,7 @@ check_recursive_mount ()
+     mnt_dir=${1%/};
+ 
+     if [ -n "${getfattr}" ]; then
+-        ${getfattr} -n trusted.gfid $mnt_dir 2>/dev/null | grep -iq "trusted.gfid=";
++        ${getfattr} -n user.gfid $mnt_dir 2>/dev/null | grep -iq "user.gfid=";
+         if [ $? -eq 0 ]; then
+             warn "ERROR: $mnt_dir is in use as a brick of a gluster volume";
+             exit 2;
+@@ -365,7 +365,7 @@ check_recursive_mount ()
+         fi
+ 
+         if [ -n "${getfattr}" ]; then
+-            ${getfattr} -n trusted.gfid "$brick" 2>/dev/null | grep -iq "trusted.gfid=";
++            ${getfattr} -n user.gfid "$brick" 2>/dev/null | grep -iq "user.gfid=";
+             if [ $? -eq 0 ]; then
+                 # brick is local
+                 while [ 1 ]; do
+diff --git a/xlators/protocol/client/src/client.h b/xlators/protocol/client/src/client.h
+index c025b98..e9e2d8c 100644
+--- a/xlators/protocol/client/src/client.h
++++ b/xlators/protocol/client/src/client.h
+@@ -27,9 +27,9 @@
+ #include "client-messages.h"
+ 
+ /* FIXME: Needs to be defined in a common file */
+-#define CLIENT_CMD_CONNECT    "trusted.glusterfs.client-connect"
+-#define CLIENT_CMD_DISCONNECT "trusted.glusterfs.client-disconnect"
+-#define CLIENT_DUMP_LOCKS     "trusted.glusterfs.clientlk-dump"
++#define CLIENT_CMD_CONNECT    "user.glusterfs.client-connect"
++#define CLIENT_CMD_DISCONNECT "user.glusterfs.client-disconnect"
++#define CLIENT_DUMP_LOCKS     "user.glusterfs.clientlk-dump"
+ #define GF_MAX_SOCKET_WINDOW_SIZE  (1 * GF_UNIT_MB)
+ #define GF_MIN_SOCKET_WINDOW_SIZE  (0)
+ 
+diff --git a/xlators/storage/bd/src/bd-helper.c b/xlators/storage/bd/src/bd-helper.c
+index 15f83d3..c418498 100644
+--- a/xlators/storage/bd/src/bd-helper.c
++++ b/xlators/storage/bd/src/bd-helper.c
+@@ -147,7 +147,7 @@ check:
+         tags = lvm_vg_get_tags (brick);
+         if (!tags) { /* no tags in the VG */
+                 gf_log (this->name, GF_LOG_ERROR,
+-                        "Extended attribute trusted.glusterfs."
++                        "Extended attribute user.glusterfs."
+                         "volume-id is absent");
+                 op_ret = -1;
+                 goto out;
+@@ -162,7 +162,7 @@ check:
+         /* UUID tag is not set in VG */
+         if (!uuid) {
+                 gf_log (this->name, GF_LOG_ERROR,
+-                        "Extended attribute trusted.glusterfs."
++                        "Extended attribute user.glusterfs."
+                         "volume-id is absent");
+                 op_ret = -1;
+                 goto out;
+diff --git a/xlators/storage/bd/src/bd.h b/xlators/storage/bd/src/bd.h
+index bdaf6f0..17e09a0 100644
+--- a/xlators/storage/bd/src/bd.h
++++ b/xlators/storage/bd/src/bd.h
+@@ -53,7 +53,7 @@
+ #define IOV_SIZE (64 * 1024)
+ 
+ #define ALIGN_SIZE 4096
+-#define LINKTO "trusted.glusterfs.dht.linkto"
++#define LINKTO "user.glusterfs.dht.linkto"
+ 
+ #define MAX_NO_VECT 1024
+ 
+diff --git a/xlators/storage/posix/src/posix-handle.c b/xlators/storage/posix/src/posix-handle.c
+index c8524a6..1e0e2ed 100644
+--- a/xlators/storage/posix/src/posix-handle.c
++++ b/xlators/storage/posix/src/posix-handle.c
+@@ -608,7 +608,7 @@ posix_does_old_trash_exists (char *old_trash)
+ 
+         ret = sys_lstat (old_trash, &stbuf);
+         if ((ret == 0) && S_ISDIR (stbuf.st_mode)) {
+-                ret = sys_lgetxattr (old_trash, "trusted.gfid", gfid, 16);
++                ret = sys_lgetxattr (old_trash, "user.gfid", gfid, 16);
+                 if ((ret < 0) && (errno == ENODATA || errno == ENOATTR) )
+                         exists = _gf_true;
+         }
+diff --git a/xlators/storage/posix/src/posix-helpers.c b/xlators/storage/posix/src/posix-helpers.c
+index 3fa6dac..b36671e 100644
+--- a/xlators/storage/posix/src/posix-helpers.c
++++ b/xlators/storage/posix/src/posix-helpers.c
+@@ -52,11 +52,11 @@
+ #include "glusterfs-acl.h"
+ #include "events.h"
+ 
+-char *marker_xattrs[] = {"trusted.glusterfs.quota.*",
+-                         "trusted.glusterfs.*.xtime",
++char *marker_xattrs[] = {"user.glusterfs.quota.*",
++                         "user.glusterfs.*.xtime",
+                          NULL};
+ 
+-char *marker_contri_key = "trusted.*.*.contri";
++char *marker_contri_key = "user.*.*.contri";
+ 
+ static char* posix_ignore_xattrs[] = {
+         "gfid-req",
+diff --git a/xlators/storage/posix/src/posix.c b/xlators/storage/posix/src/posix.c
+index aa7e740..74ed78e 100644
+--- a/xlators/storage/posix/src/posix.c
++++ b/xlators/storage/posix/src/posix.c
+@@ -6905,9 +6905,9 @@ init (xlator_t *this)
+ 
+         /* Check for Extended attribute support, if not present, log it */
+         op_ret = sys_lsetxattr (dir_data->data,
+-                                "trusted.glusterfs.test", "working", 8, 0);
++                                "user.glusterfs.test", "working", 8, 0);
+         if (op_ret != -1) {
+-                sys_lremovexattr (dir_data->data, "trusted.glusterfs.test");
++                sys_lremovexattr (dir_data->data, "user.glusterfs.test");
+         } else {
+                 tmp_data = dict_get (this->options,
+                                      "mandate-attribute");
+@@ -6955,7 +6955,7 @@ init (xlator_t *this)
+                         goto out;
+                 }
+                 size = sys_lgetxattr (dir_data->data,
+-                                      "trusted.glusterfs.volume-id", old_uuid, 16);
++                                      "user.glusterfs.volume-id", old_uuid, 16);
+                 if (size == 16) {
+                         if (gf_uuid_compare (old_uuid, dict_uuid)) {
+                                 gf_msg (this->name, GF_LOG_ERROR, 0,
+@@ -6974,7 +6974,7 @@ init (xlator_t *this)
+                            (errno == ENODATA || errno == ENOATTR)) {
+                                 gf_msg (this->name, GF_LOG_ERROR, errno,
+                                         P_MSG_VOLUME_ID_ABSENT,
+-                                        "Extended attribute trusted.glusterfs."
++                                        "Extended attribute user.glusterfs."
+                                         "volume-id is absent");
+                                 gf_event (EVENT_POSIX_BRICK_NOT_IN_VOLUME,
+                                         "brick=%s:%s",
+@@ -7008,7 +7008,7 @@ init (xlator_t *this)
+ 
+         /* Now check if the export directory has some other 'gfid',
+            other than that of root '/' */
+-        size = sys_lgetxattr (dir_data->data, "trusted.gfid", gfid, 16);
++        size = sys_lgetxattr (dir_data->data, "user.gfid", gfid, 16);
+         if (size == 16) {
+                 if (!__is_root_gfid (gfid)) {
+                         gf_msg (this->name, GF_LOG_WARNING, errno,
+@@ -7037,7 +7037,7 @@ init (xlator_t *this)
+                 goto out;
+         } else {
+                 /* First time volume, set the GFID */
+-                size = sys_lsetxattr (dir_data->data, "trusted.gfid", rootgfid,
++                size = sys_lsetxattr (dir_data->data, "user.gfid", rootgfid,
+                                      16, XATTR_CREATE);
+                 if (size == -1) {
+                         gf_msg (this->name, GF_LOG_ERROR, errno,
+diff --git a/xlators/storage/posix/src/posix.h b/xlators/storage/posix/src/posix.h
+index 87f91e5..a920a86 100644
+--- a/xlators/storage/posix/src/posix.h
++++ b/xlators/storage/posix/src/posix.h
+@@ -50,11 +50,11 @@
+ 
+ #define ACL_BUFFER_MAX 4096 /* size of character buffer */
+ 
+-#define DHT_LINKTO "trusted.glusterfs.dht.linkto"
++#define DHT_LINKTO "user.glusterfs.dht.linkto"
+ /*
+  * TIER_MODE need to be changed when we stack tiers
+  */
+-#define TIER_LINKTO "trusted.tier.tier-dht.linkto"
++#define TIER_LINKTO "user.tier.tier-dht.linkto"
+ 
+ #define POSIX_GFID_HANDLE_SIZE(base_path_len) (base_path_len + SLEN("/") \
+                                                + SLEN(GF_HIDDEN_PATH) + SLEN("/") \
