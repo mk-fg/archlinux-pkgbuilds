@@ -9,7 +9,7 @@ pkgname=glusterfs-local
 conflicts=(glusterfs)
 
 pkgver=3.10.0
-pkgrel=1
+pkgrel=2
 
 pkgdesc='Cluster filesystem capable of scaling to several petabytes.'
 arch=(i686 x86_64)
@@ -53,7 +53,13 @@ package() {
 	make -j1 DESTDIR="$pkgdir" install
 
 	mkdir -p "$pkgdir"/usr/lib/tmpfiles.d
-	echo "d /var/run/glusterfs 0755 root root -" >"$pkgdir"/usr/lib/tmpfiles.d/glusterfs.conf
+	echo "d /run/glusterfs 0755 root root -" >"$pkgdir"/usr/lib/tmpfiles.d/glusterfs.conf
+	rm -rf "$pkgdir"/var/run
+
+	# rpcbind is only needed if nfs export is used, optional dep
+	sed -i \
+		's/Requires=rpcbind\.service/Wants=rpcbind.service/' \
+		"$pkgdir"/usr/lib/systemd/system/glusterd.service
 
 	install -D -m 644 \
 		"$srcdir"/$_p-$pkgver/{README.md,INSTALL,COPYING*} \
@@ -62,5 +68,4 @@ package() {
 	cp -rf \
 		"$srcdir"/$_p-$pkgver/doc/* \
 		"$pkgdir"/usr/share/doc/glusterfs/
-	rm -rf "$pkgdir"/var/run
 }
