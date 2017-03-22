@@ -9,12 +9,20 @@ pkgname=glusterfs-local
 conflicts=(glusterfs)
 
 pkgver=3.10.0
-pkgrel=3
+pkgrel=4
 
 pkgdesc='Cluster filesystem capable of scaling to several petabytes.'
 arch=(i686 x86_64)
 url='http://www.gluster.org/'
 license=(GPL2 LGPL3)
+
+backup=(
+	'etc/glusterfs/eventsconfig.json'
+	'etc/glusterfs/gluster-rsyslog-5.8.conf'
+	'etc/glusterfs/gluster-rsyslog-7.2.conf'
+	'etc/glusterfs/glusterd.vol'
+	'etc/glusterfs/glusterfs-georep-logrotate'
+	'etc/glusterfs/glusterfs-logrotate' )
 
 depends=(fuse python2 libxml2 libaio liburcu attr which)
 optdepends=('rpcbind: NFS' 'glib2: qemu-block')
