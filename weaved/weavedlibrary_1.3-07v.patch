@@ -1,0 +1,39 @@
+--- /mnt/host/misc/arm.rpi3/usr/bin/weavedlibrary.bak-1.3-07v	2017-04-01 22:10:07.000000000 +0500
++++ /mnt/host/misc/arm.rpi3/usr/bin/weavedlibrary	2017-04-01 22:12:40.000000000 +0500
+@@ -73,6 +73,7 @@
+ #### check for updated installer
+ checkForUpdate()
+ {
++    return # disabled on ArchLinuxARM
+     echo
+     echo "-------------------"
+     echo    
+@@ -1023,18 +1024,22 @@
+ ######### Add line to cron ######
+ cronAddLine()
+ {
+-    crontab -l 2>/dev/null 1> "$TMP_DIR"/.crontab_old
+-    echo "$1" >> "$TMP_DIR"/.crontab_old
+-    logger "cronAddline $1"
+-    crontab "$TMP_DIR"/.crontab_old
++    local line=$1
++    local crontab_cmd=$(type -P crontab) || crontab_cmd=fcrontab
++    [[ "$crontab_cmd" = fcrontab && ! "$line" =~ ^ *@ ]] && cmd="% $line"
++    $crontab_cmd -l 2>/dev/null 1> "$TMP_DIR"/.crontab_old
++    echo "$line" >> "$TMP_DIR"/.crontab_old
++    logger "cronAddline $line"
++    $crontab_cmd "$TMP_DIR"/.crontab_old
+ }
+ ######### End add line to cron ######
+ 
+ ######### Disable Weaved services to start at reboot time ######
+ cronRemoveLine()
+ {
+-    crontab -l | grep -v "$1" | cat > $TMP_DIR/.crontmp
+-    crontab $TMP_DIR/.crontmp
++    crontab_cmd=$(type -P crontab) || crontab_cmd=fcrontab
++    $crontab_cmd -l | grep -v "$1" | cat > $TMP_DIR/.crontmp
++    $crontab_cmd $TMP_DIR/.crontmp
+ }
+ 
+ ######### Enable remot3.it services to start at reboot time ######

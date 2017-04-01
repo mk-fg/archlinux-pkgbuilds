@@ -1,0 +1,23 @@
+pkgname=weaved
+pkgver=1.3.07v
+pkgrel=1
+pkgdesc="weaved.com / remot3.it remote control agent"
+arch=(armv7h)
+url="https://github.com/weaved/installer/"
+license=(proprietary)
+depends=()
+
+_debver="${pkgver%.*}-${pkgver##*.}"
+source=(
+	"https://github.com/weaved/installer/raw/master/Raspbian%20deb/${_debver::-1}/weavedconnectd_${_debver}_armhf.deb"
+	weavedlibrary_1.3-07v.patch )
+sha256sums=(
+	7f3c7d9386767cfd364afc81dd28649702bb33f9356108e0b0048070b6968ea9
+	SKIP )
+
+package() {
+	cd "$srcdir"
+	bsdtar -xf data.tar.xz
+	patch -l usr/bin/weavedlibrary < weavedlibrary_1.3-07v.patch
+	mv usr etc "$pkgdir"/
+}
