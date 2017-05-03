@@ -1,23 +1,17 @@
 _p=upwork
 
 pkgname=${_p}
-pkgver=4.2.88.0
+pkgver=4.2.153.0
 pkgrel=1
 pkgdesc="Upwork Team App."
 arch=(x86_64)
 url="https://www.upwork.com/downloads/new-team-application"
 license=(unknown)
-groups=()
 depends=(gtk2 gtkglext libgcrypt15 libxss libxtst glu gconf alsa-lib)
-makedepends=()
-provides=()
-conflicts=()
-replaces=()
-backup=()
 options=(!emptydirs)
 install=
-source=("https://updates-desktopapp.upwork.com/binaries/v4_2_88_0_zjqu5h1eh5fvxz5t/upwork_amd64.deb")
-sha256sums=(225add49ba44c2aced6919d8e9e033ae4347fd626355b4f14dbd82b512a41f8d)
+source=('https://updates-desktopapp.upwork.com/binaries/v4_2_153_0_tkzkho5lhz15j08q/upwork_amd64.deb')
+sha256sums=(80cf1861494bd17529ee59fc29f9ec972af37548a9c70c6bf9ba3faf8216caa7)
 
 prepare() {
 	cd "${srcdir}"
