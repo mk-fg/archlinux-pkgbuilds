@@ -1,4 +1,9 @@
 post_install() {
+	local kmod=( /lib/modules/*-ARCH/kernel/drivers/net/wireless/rtl8812au/8812au.ko.gz )
+	if [[ ${#kmod[@]} -ne 0 ]]
+	then for p in "${kmod[@]}"; do mv "$p"{,.pre-dkms}; done
+	else echo >&2 "Failed to find 8812au.ko module(s) that come with linux-odroid-c2"
+	fi
 	dkms install rtl8812au/${1%%-*}
 }
 pre_upgrade() {
@@ -8,5 +13,10 @@ post_upgrade() {
 	post_install ${1%%-*}
 }
 pre_remove() {
+	local kmod=( /lib/modules/*-ARCH/kernel/drivers/net/wireless/rtl8812au/8812au.ko.gz.pre-dkms )
+	if [[ ${#kmod[@]} -ne 0 ]]
+	then for p in "${kmod[@]}"; do mv "$p" "${p%.pre-dkms}"; done
+	else echo >&2 "Failed to find 8812au.ko module(s) that come with linux-odroid-c2"
+	fi
 	dkms remove rtl8812au/${1%%-*} --all
 }
