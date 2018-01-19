@@ -1,6 +1,6 @@
 _p=rtl8812au
-pkgname=rtl8812au-5.2.9-odc2-git
-pkgver=5.2.9
+pkgname=rtl8812au-5.2.20-odc2-git
+pkgver=5.2.20
 pkgrel=1
 pkgdesc="Realtek 8812AU USB WiFi module, based on Realtek sources v$pkgver"
 arch=(aarch64)
