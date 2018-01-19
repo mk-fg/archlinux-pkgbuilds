@@ -20,6 +20,11 @@ pkgver() {
 	printf "%s.%s.%s" "$rel" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
+prepare() {
+	cd $_p
+	sed -i '/DEBUG=/!s:^\(MAKE=".*\)":\1 DEBUG=2":' dkms.conf
+}
+
 package() {
 	cd $_p
 	mkdir -p "$pkgdir/usr/src/$_p-$pkgver"
