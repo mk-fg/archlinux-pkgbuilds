@@ -22,6 +22,7 @@ pkgver() {
 
 prepare() {
 	cd $_p
+	patch -p1 < Makefile.enable-odc2.patch
 	sed -i '/DEBUG=/!s:^\(MAKE=".*\)":\1 DEBUG=2":' dkms.conf
 }
 
