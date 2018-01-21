@@ -1,8 +1,10 @@
-_p=rtl8812au
 pkgname=rtl8812au-5.2.20-odc2-git
+_p=rtl8812au
+_pv_suffix=''
+
 pkgver=5.2.20
 pkgrel=1
-pkgdesc="Realtek 8812AU USB WiFi module, based on Realtek sources v$pkgver"
+pkgdesc="Realtek 8812AU USB WiFi module (v$pkgver$_pv_suffix) for ODROID-C2"
 arch=(aarch64)
 url="https://github.com/mk-fg/rtl8812au"
 license=(GPL-2)
@@ -28,8 +30,12 @@ prepare() {
 
 package() {
 	cd $_p
-	mkdir -p "$pkgdir/usr/src/$_p-$pkgver"
-	cp -a * "$pkgdir/usr/src/$_p-$pkgver"
-	install -Dm644 dkms.conf "$pkgdir/usr/src/$_p-$pkgver"
-	sed -e "s/@PKGBASE@/$_p-dkms/" -e "s/@PKGVER@/$pkgver/" -i "$pkgdir/usr/src/$_p-$pkgver/dkms.conf"
+	local pv="${pkgver}${_pv_suffix}"
+	mkdir -p "$pkgdir/usr/src/$_p-$pv"
+	cp -a * "$pkgdir/usr/src/$_p-$pv"
+	install -Dm644 dkms.conf "$pkgdir/usr/src/$_p-$pv"
+	sed \
+		-e "s/@PKGBASE@/$_p-dkms/" \
+		-e "s/@PKGVER@/$pv/" \
+		-i "$pkgdir/usr/src/$_p-$pv/dkms.conf"
 }
