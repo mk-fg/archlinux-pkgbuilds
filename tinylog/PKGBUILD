@@ -1,0 +1,25 @@
+pkgname=tinylog
+pkgver=2.07
+pkgrel=1
+pkgdesc="Simple log rotation pipe/utility and file size/count limits, from perp project."
+arch=(i686 x86_64 armv7 aarch64)
+url='http://b0llix.net/perp/site.cgi?page=tinylog.8'
+license=(BSD-3)
+depends=()
+makedepends=()
+source=(http://b0llix.net/perp/distfiles/perp-2.07.tar.gz)
+sha256sums=(SKIP)
+
+build() {
+	cd "perp-$pkgver"
+	make lasagna
+	cd perp
+	make tinylog
+	gzip -f man/tinylog.8
+}
+
+package() {
+	cd "perp-$pkgver"
+	install -D -m0755 perp/tinylog "$pkgdir"/usr/bin/tinylog
+	install -D -m0644 perp/man/tinylog.8.gz "$pkgdir"/usr/share/man/man8/tinylog.8.gz
+}
