@@ -34,8 +34,18 @@ package() {
 	mkdir -p "$pkgdir/usr/src/$_p-$pv"
 	cp -a * "$pkgdir/usr/src/$_p-$pv"
 	install -Dm644 dkms.conf "$pkgdir/usr/src/$_p-$pv"
+
+	# dkms.conf package name/version
 	sed \
 		-e "s/@PKGBASE@/$_p-dkms/" \
 		-e "s/@PKGVER@/$pv/" \
 		-i "$pkgdir/usr/src/$_p-$pv/dkms.conf"
+
+	# Replace MODULE_VERSION() to easily track which .ko is installed/loaded
+	# Loaded version check example: systool -vm 8812au | grep version
+	sed -e '/DRIVERVERSION/s|"\(.*\)"|"'"v$pv"'"|' \
+		-i "$pkgdir/usr/src/$_p-$pv/include/rtw_version.h"
+	# dkms will still not replace module in pacman hook if modpost yields same srcversion
+	# So make sure that srcversion will depend on package version by altering .c file(s)
+	echo "// Version Tag: v$pv" >>"$pkgdir/usr/src/$_p-$pv/os_dep/linux/os_intfs.c"
 }
