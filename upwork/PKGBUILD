@@ -1,25 +1,24 @@
 _p=upwork
 
 pkgname=${_p}
-pkgver=4.2.153.0
+pkgver=5.1.0.562
 pkgrel=1
 pkgdesc="Upwork Team App."
 arch=(x86_64)
 url="https://www.upwork.com/downloads/new-team-application"
 license=(unknown)
-depends=(gtk2 gtkglext libgcrypt15 libxss libxtst glu gconf alsa-lib)
+depends=(alsa-lib gconf gdk-pixbuf2 gtk2 libxss libxtst nss)
 options=(!emptydirs)
 install=
-source=('https://updates-desktopapp.upwork.com/binaries/v4_2_153_0_tkzkho5lhz15j08q/upwork_amd64.deb')
-sha256sums=(80cf1861494bd17529ee59fc29f9ec972af37548a9c70c6bf9ba3faf8216caa7)
+source=('https://updates-desktopapp.upwork.com/binaries/v5_1_0_562_f3wgs5ljinabm69t/upwork_5.1.0.562_amd64.deb')
+sha256sums=(af70dae3d1cd5910d3ab591201caf75b13758d12e487b44cd32452c305df68c0)
 
 prepare() {
 	cd "${srcdir}"
-	tar -zxf "${srcdir}/data.tar.gz"
+	tar -xf "${srcdir}/data.tar.xz"
 }
 
 package() {
 	cd "${srcdir}"
 	cp -rp usr "${pkgdir}/usr"
-	ln -s /usr/lib/libudev.so "${pkgdir}/usr/share/upwork/libudev.so.0"
 }
