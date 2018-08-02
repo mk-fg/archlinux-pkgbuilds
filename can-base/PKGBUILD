@@ -1,6 +1,6 @@
 pkgname=can-base
 pkgver=3
-pkgrel=6
+pkgrel=7
 pkgdesc="meta-package with base system for container machine."
 arch=(any)
 
@@ -59,7 +59,6 @@ Virtualization=container
 
 [Network]
 DHCP=yes
-LinkLocalAddressing=no
 
 # Address=10.0.10.15/24
 # Address=fddd::10:15/104
