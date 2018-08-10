@@ -1,0 +1,85 @@
+_p=conky
+
+pkgname=conky-git
+pkgver=v1.10.8.86.g3d5e152a
+pkgrel=1
+pkgdesc='Lightweight system monitor for X'
+url='http://conky.sourceforge.net/'
+license=(BSD GPL)
+arch=(i686 x86_64)
+makedepends=(cmake docbook2x docbook-xsl man-db git)
+depends=(glib2 curl lua51 tolua++ libxml2 libxft libxdamage libxinerama imlib2 cairo wireless_tools libical libpulse)
+conflicts=(conky)
+provides=(conky)
+source=('git+https://github.com/brndnmtthws/conky')
+md5sums=(SKIP)
+
+pkgver() {
+	cd $_p
+	git describe --always | sed -e 's|-|.|g'
+}
+
+build() {
+	cd $_p
+
+	# ccmake .
+	# awk 'match($0,/^(BUILD_[^:]+):\S+(=\S+)/,a)
+	#  {sub(/^\/+\s*/, "    # ", prev_line); sub(/-MODIFIED$/,"",a[1]); print "-D", a[1] a[2] prev_line} {prev_line=$0}' CMakeCache.txt
+	cmake_opts=(
+		-D BUILD_APCUPSD=OFF    # Enable APCUPSD support
+		-D BUILD_ARGB=ON    # Build ARGB (real transparency) support
+		-D BUILD_AUDACIOUS=OFF    # Build audacious (music player) support
+		-D BUILD_BMPX=OFF    # Build BMPx (music player) support
+		-D BUILD_BUILTIN_CONFIG=ON    # Enable builtin default configuration
+		-D BUILD_CMUS=OFF    # Enable support for cmus music player
+		-D BUILD_CURL=ON    # Enable if you want Curl support
+		-D BUILD_EVE=OFF    # Enable if you want Eve-Online skill monitoring support
+		-D BUILD_HDDTEMP=OFF    # Support for hddtemp
+		-D BUILD_HTTP=OFF    # Enable if you want HTTP support
+		-D BUILD_I18N=ON    # Enable if you want internationalization support
+		-D BUILD_IBM=OFF    # Support for IBM/Lenovo notebooks
+		-D BUILD_ICAL=ON    # Enable if you want iCalendar (RFC 5545) support
+		-D BUILD_ICONV=ON    # Enable iconv support
+		-D BUILD_IMLIB2=ON    # Enable Imlib2 support
+		-D BUILD_IOSTATS=ON    # Enable disk I/O stats
+		-D BUILD_IPV6=ON    # Enable if you want IPv6 support
+		-D BUILD_IRC=OFF    # Enable if you want IRC support
+		-D BUILD_JOURNAL=ON    # Enable support for reading from the systemd journal
+		-D BUILD_LUA_CAIRO=ON    # Build cairo bindings for Lua
+		-D BUILD_LUA_IMLIB2=ON    # Build Imlib2 bindings for Lua
+		-D BUILD_LUA_RSVG=ON    # Build rsvg bindings for Lua
+		-D BUILD_MATH=ON    # Enable math support
+		-D BUILD_MOC=OFF    # Enable if you want MOC (music player) support
+		-D BUILD_MPD=OFF    # Enable if you want MPD (music player) support
+		-D BUILD_MYSQL=OFF    # Enable if you want MySQL support
+		-D BUILD_NCURSES=ON    # Enable ncurses support
+		-D BUILD_NVIDIA=OFF    # Enable nvidia support
+		-D BUILD_OLD_CONFIG=ON    # Enable support for the old syntax of configurations
+		-D BUILD_PORT_MONITORS=ON    # Build TCP portmon support
+		-D BUILD_PULSEAUDIO=ON    # Enable support for Pulseaudio's default sink and source
+		-D BUILD_RSS=ON    # Enable if you want RSS support
+		-D BUILD_WEATHER_METAR=OFF    # Enable METAR weather support
+		-D BUILD_WEATHER_XOAP=OFF    # Enable XOAP weather support
+		-D BUILD_WLAN=ON    # Enable wireless support
+		-D BUILD_X11=ON    # Build X11 support
+		-D BUILD_XDAMAGE=ON    # Build Xdamage support
+		-D BUILD_XDBE=ON    # Build Xdbe (double-buffer) support
+		-D BUILD_XFT=ON    # Build Xft (freetype fonts) support
+		-D BUILD_XINERAMA=ON    # Build Xinerama support
+		-D BUILD_XMMS2=OFF    # Enable if you want XMMS2 (music player) support
+		-D BUILD_XSHAPE=ON    # Enable Xshape support
+	)
+
+	cmake "${cmake_opts[@]}" \
+		-D MAINTAINER_MODE=ON \
+		-D CMAKE_INSTALL_PREFIX=/usr \
+		-D CMAKE_BUILD_TYPE=Release \
+		.
+
+	make
+}
+
+package() {
+	cd $_p
+	make DESTDIR="$pkgdir" install
+}
