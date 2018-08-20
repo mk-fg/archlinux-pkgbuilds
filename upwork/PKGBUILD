@@ -20,5 +20,6 @@ prepare() {
 
 package() {
 	cd "${srcdir}"
+	mv usr/bin/upwork usr/share/upwork/upwork.wrapper
 	cp -rp usr "${pkgdir}/usr"
 }
