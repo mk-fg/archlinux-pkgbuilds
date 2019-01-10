@@ -6,6 +6,7 @@ post_install() {
 	rm /etc/resolv.conf{,.pacsave}
 
 	# To fix "login[29]: pam_securetty(login:auth): access denied: tty 'pts/0' is not secure !"
+	sed -i 's/^auth *required *pam_securetty\.so/#auth required pam_securetty.so/' /etc/pam.d/login
 	echo >>/etc/securetty
 	echo pts/0 >>/etc/securetty
 
