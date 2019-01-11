@@ -1,7 +1,7 @@
 _p=libreswan
 
 pkgname=${_p}-git
-pkgver=3.18
+pkgver=3.28.20627.2480166f7
 pkgrel=1
 pkgdesc="IPsec implementation for Linux"
 arch=(i686 x86_64)
@@ -28,6 +28,8 @@ libreswan_opts=(
 	USE_EXTRACRYPTO=false
 	USE_SECCOMP=true
 	WERROR_CFLAGS=
+	USE_LABELED_IPSEC=false
+	USE_LINUX_AUDIT=false
 
 	INC_USRLOCAL=/usr INC_MANDIR=share/man
 	FINALSBINDIR=/usr/bin FINALLIBEXECDIR=/usr/lib/ipsec
