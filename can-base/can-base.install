@@ -3,7 +3,7 @@ post_install() {
 
 	# In case it might be enabled
 	systemctl disable systemd-resolved
-	rm /etc/resolv.conf{,.pacsave}
+	rm -f /etc/resolv.conf{,.pacsave}
 
 	# To fix "login[29]: pam_securetty(login:auth): access denied: tty 'pts/0' is not secure !"
 	sed -i 's/^auth *required *pam_securetty\.so/#auth required pam_securetty.so/' /etc/pam.d/login
