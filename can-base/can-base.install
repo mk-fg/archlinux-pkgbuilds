@@ -13,6 +13,6 @@ post_install() {
 	# Common site-local code mounted from host
 	mkdir /usr/src/modules
 
-	# To avoid systemd creating btrfs subvolume there
-	mkdir -p -m0700 /var/lib/machines
+	# To avoid systemd creating btrfs subvolumes there
+	mkdir -p -m0700 /var/lib/{machines,portables}
 }
