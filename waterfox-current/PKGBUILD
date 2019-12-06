@@ -1,0 +1,124 @@
+# Based on https://aur.archlinux.org/packages/waterfox-current-git/ by Matt/ilikenwf <parwok@gmail.com>
+# Last sync with upstream git - 8f99d55 2019-11-30 pkgver=68.0+04cd81779251
+
+# Local changes:
+# - Builds specific waterfox-current git release tag from https://github.com/MrAlex94/Waterfox/releases
+# - Downloads release .tar.gz instead of cloning whole history, should still be ~500M compressed though
+# - Use bundled spelling dictionaries instead of depending on hunspell
+
+# Local pkgver: 2019.10-current-1 -> 2019.10.1
+
+# Missing build-deps here:
+# imake inetutils xorg-server-xvfb autoconf2.13 rust llvm python2-psutil cbindgen nasm
+# rust-1.38 (archived, resolved for v71+) - https://bugzilla.mozilla.org/show_bug.cgi?id=1583471
+#  ALA link - https://archive.archlinux.org/packages/r/rust/rust-1%3A1.38.0-2-x86_64.pkg.tar.xz
+
+pkgver=2019.10.1
+pkgver_tag=${pkgver%.*}-current-${pkgver##*.}
+
+pkgname=waterfox-current
+pkgrel=1
+pkgdesc="More private and optimized Firefox fork"
+arch=(i686 x86_64)
+license=(MPL)
+url="https://www.waterfoxproject.org/"
+
+depends=(
+	gtk3 libffi libvpx icu libevent mozilla-common libxt
+	startup-notification mime-types dbus-glib ffmpeg nss ttf-font libpulse )
+
+makedepends=(
+	unzip zip diffutils python2-setuptools yasm mesa imake inetutils gtk2
+	xorg-server-xvfb autoconf2.13 'rust<=1:1.38.0-2' mercurial clang llvm jack
+	python nodejs python2-psutil cbindgen nasm )
+
+# gtk2 - https://bugzilla.mozilla.org/show_bug.cgi?id=1377445
+# python2 - https://bugzilla.mozilla.org/show_bug.cgi?id=1093212
+
+optdepends=(
+	'libnotify: Notification integration'
+	'pulseaudio: Audio support'
+	'speech-dispatcher: Text-to-Speech' )
+
+source=(
+	https://github.com/MrAlex94/Waterfox/archive/"$pkgver_tag".tar.gz
+	mozconfig
+	waterfox-current.desktop
+	ignore_bad_validator.patch
+	vendor.js
+)
+
+sha512sums=(
+	b2d9ea1fa32744c6f262427a620de76ec8db681eff1390f29513b7af351668908d6804fdac8c3739e7d3d9ed01d0ad822e2f0facd823a730fde6e21c53f3c9cc
+	d7f49089c7aaf0ca72e2646bbdfd2f628a415762328bf52f9a4ba1dbc83462b6872c11b8424310b59a46e9b50e8ce3cc91fca88ae83e4cee34375ef45b29d81c
+	acd1a8ea32747dcd3df976c64408bb01d06f30af399f8625f43930d6a8b64a76a00af08aca9cd525c74ee3f2e58f6a49b57bab9a8b6ec0e1497f27122a41b82a
+	ab2aced2e371afad317ab3ffb3e8161c457f022327e182d426aa2ba4142112060225ced4610eb2525e1c739a4e56ad4e7cf78cc102232cf01cf06d0224a9c09d
+	d927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7
+)
+
+options=(!emptydirs !makeflags)
+provides=()
+conflicts=()
+install=waterfox-current.install
+options=(!emptydirs !makeflags !strip)
+
+
+prepare() {
+	rm -rf Waterfox # old version
+	mv Waterfox-$pkgver_tag Waterfox
+
+	cd Waterfox
+
+	cp ../mozconfig .mozconfig
+
+	# lcrmf breaks stuff
+	sed -i 's/ \-lcrmf//g' "${srcdir}/Waterfox/old-configure.in"
+
+	# the below is a really horrible thing to do but it allows commas in our optimizations to work
+	patch -Np1 -i "${srcdir}/ignore_bad_validator.patch"
+
+	mkdir -p "$srcdir/path"
+}
+
+build() {
+	cd Waterfox
+
+	export PATH="$srcdir/path:$PATH"
+	export PYTHON="/usr/bin/python2"
+	export MOZ_NOSPAM=1
+	export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
+
+	# LTO needs more open files
+	ulimit -n 4096
+
+	xvfb-run -a -n 97 -s "-screen 0 1600x1200x24" ./mach build
+}
+
+package() {
+	cd Waterfox
+	mkdir -p "$pkgdir"
+	DESTDIR="$pkgdir" ./mach install
+
+	install -Dm644 ../vendor.js \
+		"$pkgdir/opt/waterfox-current/browser/defaults/preferences/vendor.js"
+
+	for i in 16 32 64 48 128; do
+		install -Dm644 \
+			"$srcdir/Waterfox/obj-x86_64-pc-linux-gnu/dist/waterfox-current/browser/chrome/icons/default/default$i.png" \
+			"$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/waterfox-current.png"
+	done
+
+	install -Dm644 \
+		"$srcdir/Waterfox/obj-x86_64-pc-linux-gnu/dist/waterfox-current/browser/chrome/icons/default/default128.png" \
+		"$pkgdir/usr/share/icons/hicolor/64x64/apps/waterfox-current.png"
+	install -Dm644 \
+		"$srcdir/Waterfox/obj-x86_64-pc-linux-gnu/dist/waterfox-current/browser/chrome/icons/default/default128.png" \
+		"$pkgdir/usr/share/icons/hicolor/128x128/apps/waterfox-current.png"
+	install -Dm644 browser/branding/official/content/about-logo.png \
+		"$pkgdir/usr/share/icons/hicolor/192x192/apps/waterfox-current.png"
+	install -Dm644 browser/branding/official/content/about-logo@2x.png \
+		"$pkgdir/usr/share/icons/hicolor/384x384/apps/waterfox-current.png"
+
+	install -Dm644 ../waterfox-current.desktop \
+		"$pkgdir/usr/share/applications/waterfox-current.desktop"
+}
