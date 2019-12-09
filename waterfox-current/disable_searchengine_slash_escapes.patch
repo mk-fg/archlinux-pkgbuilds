@@ -1,0 +1,14 @@
+diff --git a/toolkit/components/search/SearchEngine.jsm b/toolkit/components/search/SearchEngine.jsm
+index 1da390510..30ed34ed3 100644
+--- a/toolkit/components/search/SearchEngine.jsm
++++ b/toolkit/components/search/SearchEngine.jsm
+@@ -2119,6 +2119,9 @@ SearchEngine.prototype = {
+       );
+     }
+ 
++    if (purpose == 'searchbar')
++      submissionData = submissionData.replace('%2F', '/');
++
+     SearchUtils.log('getSubmission: Out data: "' + submissionData + '"');
+     return url.getSubmission(submissionData, this, purpose);
+   },
