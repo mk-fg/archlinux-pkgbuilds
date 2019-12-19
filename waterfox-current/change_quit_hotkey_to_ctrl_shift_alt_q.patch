@@ -1,0 +1,13 @@
+diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browser-sets.inc
+index 11464065b..c042c12d4 100644
+--- a/browser/base/content/browser-sets.inc
++++ b/browser/base/content/browser-sets.inc
+@@ -280,7 +280,7 @@
+ #ifdef XP_WIN
+          modifiers="accel,shift"
+ #else
+-         modifiers="accel"
++         modifiers="accel,shift,alt"
+ #endif
+ # On OS X, dark voodoo magic invokes the quit code for this key.
+ # So we're not adding the attribute on OSX because of backwards/add-on compat.
