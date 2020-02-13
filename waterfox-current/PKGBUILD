@@ -46,8 +46,11 @@ source=(
 	waterfox-current.desktop
 	ignore_bad_validator.patch
 	vendor.js
+
+	# Local patches
 	enable_reader_mode_hotkey.patch
 	change_quit_hotkey_to_ctrl_shift_alt_q.patch
+	resist_fp_exclude_dark_mode.patch
 )
 
 sha512sums=(
@@ -56,8 +59,11 @@ sha512sums=(
 	acd1a8ea32747dcd3df976c64408bb01d06f30af399f8625f43930d6a8b64a76a00af08aca9cd525c74ee3f2e58f6a49b57bab9a8b6ec0e1497f27122a41b82a
 	ab2aced2e371afad317ab3ffb3e8161c457f022327e182d426aa2ba4142112060225ced4610eb2525e1c739a4e56ad4e7cf78cc102232cf01cf06d0224a9c09d
 	d927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7
+
+	# Local patches
 	8fe402c76c125c6b53f2c3aeeb0e78c4843b12f0d86f105d0db6f820d6ebf99f884fad56110a14b81d9bab8e237d51d43633885f8000d283631c4a2e0b1e08af
 	222347a0aa35768ed67d393861fd733e914f8546ace85ef6f8e26175703c3e256261d8421b66d86e65f887b6530ab58fe02a49340a7abbad6c257845ec7ffdd0
+	d6b0d1d7d761bd711142f1e978f5b7ae46bd99745f6f6f21fa8a1d95cf506492c03b83d63f25d5e8f5aacd4c5cc3f12b58512f726fede5320839d2dda9ec1846
 )
 
 options=(!emptydirs !makeflags)
@@ -85,6 +91,8 @@ prepare() {
 	patch -tNp1 -i "${srcdir}/enable_reader_mode_hotkey.patch"
 	# Use Ctrl+Shift+Alt+Q for quit, to avoid accidentally pressing it instead of Ctrl+W
 	patch -tNp1 -i "${srcdir}/change_quit_hotkey_to_ctrl_shift_alt_q.patch"
+	# Pass "prefers-color-scheme: dark" css media queries in resistFingerprinting mode too
+	patch -tNp1 -i "${srcdir}/resist_fp_exclude_dark_mode.patch"
 
 	mkdir -p "$srcdir/path"
 }

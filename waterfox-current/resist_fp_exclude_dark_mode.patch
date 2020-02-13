@@ -1,0 +1,17 @@
+diff --git a/layout/style/nsMediaFeatures.cpp b/layout/style/nsMediaFeatures.cpp
+index 96d272b..86e902b 100644
+--- a/layout/style/nsMediaFeatures.cpp
++++ b/layout/style/nsMediaFeatures.cpp
+@@ -244,9 +244,9 @@ bool Gecko_MediaFeatures_PrefersReducedMotion(const Document* aDocument) {
+ 
+ StylePrefersColorScheme Gecko_MediaFeatures_PrefersColorScheme(
+     const Document* aDocument) {
+-  if (nsContentUtils::ShouldResistFingerprinting(aDocument)) {
+-    return StylePrefersColorScheme::Light;
+-  }
++  // if (nsContentUtils::ShouldResistFingerprinting(aDocument)) {
++  //   return StylePrefersColorScheme::Light;
++  // }
+   if (nsPresContext* pc = aDocument->GetPresContext()) {
+     if (pc->IsPrintingOrPrintPreview()) {
+       return StylePrefersColorScheme::Light;
