@@ -6,15 +6,15 @@
 # - Downloads release .tar.gz instead of cloning whole history, should still be ~500M compressed though
 # - Use bundled spelling dictionaries instead of depending on hunspell
 
+# Local pkgver: 2020.01-current -> 2020.01
 # Local pkgver: 2019.10-current-1 -> 2019.10.1
 
 # Missing build-deps here:
 # imake inetutils xorg-server-xvfb autoconf2.13 llvm python2-psutil cbindgen nasm rust
-# rust-1.38 (archived, resolved for v71+) - https://bugzilla.mozilla.org/show_bug.cgi?id=1583471
-#  ALA link - https://archive.archlinux.org/packages/r/rust/rust-1%3A1.38.0-2-x86_64.pkg.tar.xz
 
-pkgver=2019.10.1
-pkgver_tag=${pkgver%.*}-current-${pkgver##*.}
+pkgver=2020.01
+pkgver_tag=${pkgver}-current
+# pkgver_tag=${pkgver%.*}-current-${pkgver##*.}
 
 pkgname=waterfox-current
 pkgrel=3
@@ -29,7 +29,7 @@ depends=(
 
 makedepends=(
 	unzip zip diffutils python2-setuptools yasm mesa imake inetutils gtk2
-	xorg-server-xvfb autoconf2.13 'rust<=1:1.38.0-2' mercurial clang llvm jack
+	xorg-server-xvfb autoconf2.13 rust mercurial clang llvm jack
 	python nodejs python2-psutil cbindgen nasm )
 
 # gtk2 - https://bugzilla.mozilla.org/show_bug.cgi?id=1377445
@@ -51,7 +51,7 @@ source=(
 )
 
 sha512sums=(
-	b2d9ea1fa32744c6f262427a620de76ec8db681eff1390f29513b7af351668908d6804fdac8c3739e7d3d9ed01d0ad822e2f0facd823a730fde6e21c53f3c9cc
+	02b9ad2c515e26775dae8bc2d6f93a67992df4fed22ed55666ec67be35678229d08bf990c11385d677b6f78968261f9175caa721729ede5c7f8d37398ed6874f
 	d7f49089c7aaf0ca72e2646bbdfd2f628a415762328bf52f9a4ba1dbc83462b6872c11b8424310b59a46e9b50e8ce3cc91fca88ae83e4cee34375ef45b29d81c
 	acd1a8ea32747dcd3df976c64408bb01d06f30af399f8625f43930d6a8b64a76a00af08aca9cd525c74ee3f2e58f6a49b57bab9a8b6ec0e1497f27122a41b82a
 	ab2aced2e371afad317ab3ffb3e8161c457f022327e182d426aa2ba4142112060225ced4610eb2525e1c739a4e56ad4e7cf78cc102232cf01cf06d0224a9c09d
