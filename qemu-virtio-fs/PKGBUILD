@@ -9,7 +9,8 @@ pkgname=qemu
 pkgdesc="A generic and open source machine emulator and virtualizer"
 
 pkgver=4.2.0
-pkgver_virtiofs=virtio-fs-as-posted-2020-01-21
+pkgver_virtiofs=virtio-fs-dev
+# pkgver_virtiofs=virtio-fs-as-posted-2020-01-21
 
 pkgrel=2
 arch=(x86_64)
