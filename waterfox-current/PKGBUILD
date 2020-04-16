@@ -13,7 +13,7 @@
 # Missing build-deps here:
 # imake inetutils xorg-server-xvfb autoconf2.13 llvm python2-psutil cbindgen nasm rust
 
-pkgver=2020.02
+pkgver=2020.04
 pkgver_tag=${pkgver}-current
 # pkgver_tag=${pkgver%.*}-current-${pkgver##*.}
 
@@ -46,7 +46,6 @@ source=(
 	mozconfig
 	waterfox-current.desktop
 	ignore_bad_validator.patch
-	vendor.js
 
 	# Local patches
 	enable_reader_mode_hotkey.patch
@@ -55,11 +54,10 @@ source=(
 )
 
 sha512sums=(
-	dcb81b281aea0a85089fbf36cce6c97885e2b0f97ce428243f7965f186151330c1e6437ae12571b423e2de0a2094164eaecc6d1d46298e89913a817d422b189d
-	d7f49089c7aaf0ca72e2646bbdfd2f628a415762328bf52f9a4ba1dbc83462b6872c11b8424310b59a46e9b50e8ce3cc91fca88ae83e4cee34375ef45b29d81c
+	8a72abc3499910c1946f513a22211f5994cbcbd2625c3813c9990c0a23544bae2ba9e43bc30feef031ff0b6c6d6b65cc8e519aa1e66f62ab78e7e11397848297
+	eeabd0915e38b61d56be69dcf8656759d2e3c49e7f8c90fc41f91410c950b14d6697b061fdb0c12cdd6ab1ecb4bae8510672a8a054019be67520ee3ae8d8fb62
 	acd1a8ea32747dcd3df976c64408bb01d06f30af399f8625f43930d6a8b64a76a00af08aca9cd525c74ee3f2e58f6a49b57bab9a8b6ec0e1497f27122a41b82a
 	ab2aced2e371afad317ab3ffb3e8161c457f022327e182d426aa2ba4142112060225ced4610eb2525e1c739a4e56ad4e7cf78cc102232cf01cf06d0224a9c09d
-	d927e5e882115c780aa0d45034cb1652eaa191d95c15013639f9172ae734245caae070018465d73fdf86a01601d08c9e65f28468621422d799fe8451e6175cb7
 
 	# Local patches
 	8fe402c76c125c6b53f2c3aeeb0e78c4843b12f0d86f105d0db6f820d6ebf99f884fad56110a14b81d9bab8e237d51d43633885f8000d283631c4a2e0b1e08af
@@ -80,6 +78,7 @@ prepare() {
 
 	cd Waterfox
 
+	mv .mozconfig{,.default}
 	cp ../mozconfig .mozconfig
 
 	# lcrmf breaks stuff
@@ -116,9 +115,6 @@ package() {
 	cd Waterfox
 	mkdir -p "$pkgdir"
 	DESTDIR="$pkgdir" ./mach install
-
-	install -Dm644 ../vendor.js \
-		"$pkgdir/opt/waterfox-current/browser/defaults/preferences/vendor.js"
 
 	for i in 16 32 64 48 128; do
 		install -Dm644 \
