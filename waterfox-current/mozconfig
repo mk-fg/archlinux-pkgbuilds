@@ -80,9 +80,12 @@ ac_add_options --enable-system-pixman
 ac_add_options --enable-default-toolkit=cairo-gtk3
 
 # Features
+#ac_add_options --disable-ctypes
 ac_add_options --disable-accessibility
-#ac_add_options --disable-synth-speechd
-#ac_add_options --disable-webspeech=1
+ac_add_options --disable-synth-speechd
+#ac_add_options --disable-webspeech
+ac_add_options --disable-webspeechtestbackend
+ac_add_options --disable-cdp
 ac_add_options --disable-gpsd
 ac_add_options --disable-debug
 ac_add_options --disable-dmd
