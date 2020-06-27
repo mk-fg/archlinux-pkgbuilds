@@ -1,5 +1,4 @@
 pkgname=purple-hangouts-git
-srcname=purple-hangouts
 pkgver=r396
 pkgrel=1
 pkgdesc="A Pidgin plugin to support proprietary protocol used by Google for the Hangouts service."
@@ -8,21 +7,21 @@ url='https://github.com/EionRobb/purple-hangouts'
 license=(GPL-3)
 depends=(libpurple glib2 json-glib protobuf-c)
 makedepends=(git)
-source=(purple-hangouts::git+https://github.com/EionRobb/purple-hangouts)
+source=($pkgname::git+"$url")
 sha256sums=(SKIP)
 
 pkgver() {
-	cd "$srcdir/$srcname"
+	cd $pkgname
 	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 build() {
-	cd "$srcdir/$srcname"
+	cd $pkgname
 	make
 }
 
 package() {
-	cd "$srcdir/$srcname"
+	cd $pkgname
 	destdir="$pkgdir$(pkg-config --variable plugindir purple)"
 	install -Dm755 -t "$destdir" libhangouts.so
 }
