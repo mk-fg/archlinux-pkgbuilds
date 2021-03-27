@@ -1,18 +1,18 @@
 _p=notification-thing
 
 pkgname=${_p}-git
-pkgver=15.03.0
+pkgver=20.03.0
 pkgrel=1
-pkgdesc="DE-free daemon for displaying notifications."
-arch=('any')
+pkgdesc="DE-independent daemon for displaying FDO desktop notifications."
+arch=(any)
 url="https://github.com/mk-fg/${_p}"
-license=('BSD')
+license=(BSD)
 groups=()
-depends=('python2' 'python2-dbus' 'python2-gobject')
-makedepends=('git' 'python2-setuptools')
+depends=(python dbus-python python-gobject)
+makedepends=(git python-setuptools)
 optdepends=(
 	'libcanberra: sound support'
-	'python2-pyzmq: network pub-sub support' )
+	'python-pyzmq: network pub-sub support' )
 provides=()
 conflicts=()
 replaces=()
@@ -20,7 +20,7 @@ backup=()
 options=(!emptydirs)
 install=
 source=("${_p}::git+${url}")
-md5sums=('SKIP')
+md5sums=(SKIP)
 
 pkgver() {
 	cd "${_p}"
@@ -29,5 +29,5 @@ pkgver() {
 
 package() {
 	cd "${srcdir}/${_p}"
-	python2 setup.py install --prefix=/usr --root="${pkgdir}/" --optimize=1
+	python setup.py install --prefix=/usr --root="${pkgdir}/" --optimize=1
 }
