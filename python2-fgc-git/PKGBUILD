@@ -3,21 +3,15 @@ _p=fgc
 pkgname=python2-${_p}-git
 pkgver=15.02.2
 pkgrel=1
-pkgdesc="Misc py stdlib extensions."
-arch=('any')
+pkgdesc='Misc py stdlib extensions.'
+arch=(any)
 url="https://github.com/mk-fg/${_p}"
-license=('WTFPL')
-groups=()
-depends=('python2' 'python2-yaml')
-makedepends=('git' 'python2-setuptools')
-provides=()
-conflicts=()
-replaces=()
-backup=()
+license=(WTFPL)
+depends=(python2)
+makedepends=(git python2-setuptools)
 options=(!emptydirs)
-install=
 source=("${_p}::git+${url}")
-md5sums=('SKIP')
+md5sums=(SKIP)
 
 pkgver() {
 	cd "${_p}"
