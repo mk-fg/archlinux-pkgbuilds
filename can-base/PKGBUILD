@@ -1,6 +1,6 @@
 pkgname=can-base
-pkgver=4
-pkgrel=2
+pkgver=5
+pkgrel=1
 pkgdesc="meta-package with base system for container machine."
 arch=(any)
 
@@ -27,7 +27,13 @@ depends=(
 	tar
 	texinfo
 	util-linux
+	libcap
+	libarchive
 	xz
+	zstd
+
+	batctl
+	wireguard-tools
 )
 
 provides=()
@@ -40,24 +46,66 @@ install=can-base.install
 package() {
 	cd "$pkgdir"
 
-	# Create explicit veth unit instead of default ones, to e.g. assign IP there later
+	# batman-adv with global IPv6 to run some overlay on top of
 	mkdir -p etc/systemd/network
-	cat >etc/systemd/network/66-ve-host.network <<EOF
+	ln -s /dev/null etc/systemd/network/80-container-host0.network
+	cat >etc/systemd/network/50-bat.netdev <<'EOF'
+[NetDev]
+Name=bat0
+Kind=batadv
+MTUBytes=1440
+EOF
+	cat >etc/systemd/network/50-bat.network <<'EOF'
+[Match]
+Name=bat0
+
+[Link]
+MTUBytes=1440
+
+[Network]
+DHCP=no
+LLMNR=no
+LLDP=no
+IPv6AcceptRA=no
+
+## ip-ext ipv6-name -mbp 2a02:17d0:201:8b00::/64 can-name
+# Address=2a02:17d0:201:8b00::/64
+# Gateway=2a02:17d0:201:8b00:fc27:c46f:b9a4:a2d4
+EOF
+	cat >etc/systemd/network/66-ve-host.network <<'EOF'
 [Match]
 Name=host*
 Virtualization=container
 
 [Network]
-DHCP=yes
-
-# Address=10.0.10.15/24
-# Address=fddd::10:15/104
-# Gateway=10.0.10.1
-# Gateway=fddd::10:1
-# DNS=10.0.10.1
-# DNS=fddd::10:1
+DHCP=no
+BatmanAdvanced=bat0
 EOF
-	ln -s /dev/null etc/systemd/network/80-container-host0.network
-	ln -s /dev/null etc/systemd/network/80-container-ve.network
+
+	# Workaround for systemd-networkd not setting mtu for these ifaces at the right time
+	mkdir -p etc/systemd/system
+	cat >etc/systemd/system/bat-mtu.service <<'EOF'
+[Unit]
+Wants=network.target
+After=network.target
+Before=network-online.target
+
+[Service]
+Type=oneshot
+TimeoutSec=10
+
+# systemd-networkd fails to set MTU via .netdev/network units
+# This script will try setting mtu value a couple times, exiting when done or on timeout
+ExecStart=bash -c 'iface=bat0; mtu=1440; err=1;\
+	trap "pkill -g0" EXIT; trap \'err=0; pkill -g0\' USR1; trap \'exit $err\' TERM;\
+	(grep -q " mtu $mtu " < <( ip link show dev $iface;\
+		stdbuf -oL ip -o monitor all dev $iface ) && pkill -USR1 -g0 || pkill -g0) &\
+	for n in 1 2 3 4; do read -rt 1 <> <(:); ip link set dev $iface mtu $mtu; done'
+
+[Install]
+WantedBy=multi-user.target
+EOF
+	mkdir -p etc/systemd/system/multi-user.target.wants
+	ln -s /etc/systemd/system/bat-mtu.service etc/systemd/system/multi-user.target.wants/bat-mtu.service
 
 }
