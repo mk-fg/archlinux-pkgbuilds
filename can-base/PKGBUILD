@@ -1,6 +1,6 @@
 pkgname=can-base
 pkgver=5
-pkgrel=2
+pkgrel=3
 pkgdesc="meta-package with base system for container machine."
 arch=(any)
 
@@ -32,6 +32,7 @@ depends=(
 	xz
 	zstd
 
+	nftables
 	batctl
 	wireguard-tools
 )
