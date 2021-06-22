@@ -1,13 +1,16 @@
 diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browser-sets.inc
-index 11464065b..e0765598a 100644
+index cb71918..36c230f 100644
 --- a/browser/base/content/browser-sets.inc
 +++ b/browser/base/content/browser-sets.inc
-@@ -206,7 +206,7 @@
-     <key keycode="VK_F11" command="View:FullScreen"/>
- #endif
- #ifndef XP_WIN
--    <key id="key_toggleReaderMode" key="&toggleReaderMode.key;" command="View:ReaderView" modifiers="accel,alt" disabled="true"/>
-+    <key id="key_toggleReaderMode" key="&toggleReaderMode.key;" command="View:ReaderView" modifiers="alt"/>
+@@ -229,9 +229,9 @@
+          data-l10n-id="reader-mode-toggle-shortcut-windows"
  #else
-     <key id="key_toggleReaderMode" keycode="&toggleReaderMode.win.keycode;" command="View:ReaderView" disabled="true"/>
+          data-l10n-id="reader-mode-toggle-shortcut-other"
+-         modifiers="accel,alt"
++         modifiers="alt"
  #endif
+-         disabled="true"/>
++         />
+ 
+ #ifndef XP_MACOSX
+     <key id="key_togglePictureInPicture" data-l10n-id="picture-in-picture-toggle-shortcut" command="View:PictureInPicture" modifiers="accel,shift"/>

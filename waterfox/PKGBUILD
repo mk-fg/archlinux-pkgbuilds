@@ -31,7 +31,8 @@ sha256sums=('661b25e4fc386242280156d21e8d41e032a9a7daadec206ade69f84ac83529cb'
             '1dba448eb1605c9dc73c22861a5394b50055909399f056baee4887b29af1b51e')
 #_disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
-for p in 9999-*.patch ; do source+=( $p ); sha256sums+=( SKIP ); done
+local_patches=()
+for p in 9999-*.patch ; do local_patches+=( $p ); source+=( $p ); sha256sums+=( SKIP ); done
 
 prepare() {
   mkdir -p mozbuild
@@ -75,14 +76,11 @@ ac_add_options --disable-updater
 ac_add_options --disable-tests
 END
 
-	# Enable Alt+R hotkey for reader mode
-	patch -tNp1 -i "${srcdir}/9999-enable_reader_mode_hotkey.patch"
-	# Use Ctrl+Shift+Alt+Q for quit, to avoid accidentally pressing it instead of Ctrl+W
-	patch -tNp1 -i "${srcdir}/9999-change_quit_hotkey_to_ctrl_shift_alt_q.patch"
-	# Pass "prefers-color-scheme: dark" css media queries in resistFingerprinting mode too
-	patch -tNp1 -i "${srcdir}/9999-resist_fp_exclude_dark_mode.patch"
-
 	echo >>../mozconfig 'ac_add_options --disable-elf-hack' # build fix
+	for p in ${local_patches[@]}; do
+		echo "--- applying local patch: $p"
+		patch --dry-run -tNp1 -i "${srcdir}"/$p && patch -tNp1 -i "${srcdir}"/$p
+	done
 }
 
 build() {

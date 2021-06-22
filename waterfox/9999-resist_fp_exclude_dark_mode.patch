@@ -1,17 +1,19 @@
-diff --git a/layout/style/nsMediaFeatures.cpp b/layout/style/nsMediaFeatures.cpp
-index 96d272b..86e902b 100644
---- a/layout/style/nsMediaFeatures.cpp
-+++ b/layout/style/nsMediaFeatures.cpp
-@@ -244,9 +244,9 @@ bool Gecko_MediaFeatures_PrefersReducedMotion(const Document* aDocument) {
+diff --git a/dom/base/Document.cpp b/dom/base/Document.cpp
+index 132c0ecbfd..e00d669704 100644
+--- a/dom/base/Document.cpp
++++ b/dom/base/Document.cpp
+@@ -16355,10 +16355,10 @@ void Document::RemoveToplevelLoadingDocument(Document* aDoc) {
  
- StylePrefersColorScheme Gecko_MediaFeatures_PrefersColorScheme(
-     const Document* aDocument) {
--  if (nsContentUtils::ShouldResistFingerprinting(aDocument)) {
+ StylePrefersColorScheme Document::PrefersColorScheme(
+     IgnoreRFP aIgnoreRFP) const {
+-  if (aIgnoreRFP == IgnoreRFP::No &&
+-      nsContentUtils::ShouldResistFingerprinting(this)) {
 -    return StylePrefersColorScheme::Light;
 -  }
-+  // if (nsContentUtils::ShouldResistFingerprinting(aDocument)) {
++  // if (aIgnoreRFP == IgnoreRFP::No &&
++  //     nsContentUtils::ShouldResistFingerprinting(this)) {
 +  //   return StylePrefersColorScheme::Light;
 +  // }
-   if (nsPresContext* pc = aDocument->GetPresContext()) {
-     if (pc->IsPrintingOrPrintPreview()) {
-       return StylePrefersColorScheme::Light;
+ 
+   if (nsPresContext* pc = GetPresContext()) {
+     if (auto devtoolsOverride = pc->GetOverridePrefersColorScheme()) {
