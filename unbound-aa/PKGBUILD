@@ -11,7 +11,7 @@ pkgdesc="Validating, recursive, and caching DNS resolver"
 arch=(x86_64)
 url="https://unbound.net/"
 license=(BSD)
-depends=(openssl ldns libevent libnghttp2)
+depends=(dnssec-anchors openssl ldns libevent libnghttp2)
 makedepends=(expat systemd)
 provides=(libunbound.so)
 
@@ -19,16 +19,20 @@ source=(
 	"https://unbound.net/downloads/${_pkgname}-${pkgver}.tar.gz"
 	set-aa-bit-from-dnstap_send_identity.patch
 	${_pkgname}-sysusers.conf
-	${_pkgname}-tmpfiles.conf )
+	${_pkgname}-tmpfiles.conf
+	${_pkgname}-trusted-key.hook )
 
 b2sums=(
 	5fabb9205773a1983842e41cf7a4d6c3878fa8beb7c8ccc71ae1edf7738cb9506c3d7bb32cf887b305317ca695bf876d9f5bf9aeb0129b0e9e926d437b3e6eb3
 	SKIP
 	292a3c2e5fde292a03b6c9b2ddabd5089f52e73b50a404c3d9f54c1a43184924b661a21eea61cc521c594c1005a3b40b630fa585a38195c61298f9b24b248b92
-	d3951006b43068be904c6b91a9e0563d56228225854e12b40abbdd4ba9b47338e97265837297a6de879acbc8051bb749163f9457683f5e12fc29ac2e7b687fd3 )
+	d3951006b43068be904c6b91a9e0563d56228225854e12b40abbdd4ba9b47338e97265837297a6de879acbc8051bb749163f9457683f5e12fc29ac2e7b687fd3
+	d28785390eb6c125bd26ca11f097fe8864b080482157deeb7c70e9bee47ff2844abaed574db59a7c152ed3ec0acba05cfee4c3751f7a9f553320b064578f86c7 )
 
 prepare() {
 	cd ${_pkgname}-${pkgver}
+	# set default location of trusted-key.key
+	sed -i -e '/# trust-anchor-file:/c\\ttrust-anchor-file: /etc/unbound/trusted-key.key' doc/example.conf.in
 
 	p=set-aa-bit-from-dnstap_send_identity.patch; echo "--- patch: $p"
 	patch --dry-run -tNp1 -i "${srcdir}"/$p && patch -tNp1 -i "${srcdir}"/$p
@@ -71,7 +75,7 @@ check() {
 }
 
 package() {
-	depends+=(libprotobuf-c.so libsystemd.so)
+	depends+=(libsystemd.so)
 	cd ${_pkgname}-${pkgver}
 	make DESTDIR="${pkgdir}" install
 	install -vDm 644 contrib/${_pkgname}.service -t "${pkgdir}"/usr/lib/systemd/system/
@@ -79,4 +83,6 @@ package() {
 	cd ..
 	install -vDm 644 ${_pkgname}-sysusers.conf "${pkgdir}"/usr/lib/sysusers.d/${_pkgname}.conf
 	install -vDm 644 ${_pkgname}-tmpfiles.conf "${pkgdir}"/usr/lib/tmpfiles.d/${_pkgname}.conf
+	# libalpm hook to copy the dnssec-anchors provided key to /etc/unbound
+	install -vDm 644 unbound-trusted-key.hook -t "${pkgdir}"/usr/share/libalpm/hooks/
 }
