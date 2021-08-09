@@ -1,5 +1,8 @@
 # Based on unbound PKGBUILD in arch-community trunk,
-#   with less stuff built-in and an extra authoritative-proxy binary.
+#   with less stuff built-in and a hacked-on authoritative-proxy mode
+# UNBOUND_AA_NORA_MODE env var enables/disables the new mode
+# Caching and authoritative mode should be normally be mutually-exclusive,
+#   so do not use this hack unless you absolutely know what you're doing
 
 pkgname=unbound-aa
 _pkgname=unbound
@@ -7,7 +10,7 @@ conflicts=(unbound)
 
 pkgver=1.13.1
 pkgrel=2
-pkgdesc="Validating, recursive, and caching DNS resolver"
+pkgdesc="Hacked unbound version to add UNBOUND_AA_NORA_MODE env control/mode"
 arch=(x86_64)
 url="https://unbound.net/"
 license=(BSD)
@@ -17,7 +20,7 @@ provides=(libunbound.so)
 
 source=(
 	"https://unbound.net/downloads/${_pkgname}-${pkgver}.tar.gz"
-	set-aa-bit-from-dnstap_send_identity.patch
+	add-aa-nora-mode-hack.patch
 	${_pkgname}-sysusers.conf
 	${_pkgname}-tmpfiles.conf
 	${_pkgname}-trusted-key.hook )
@@ -34,8 +37,8 @@ prepare() {
 	# set default location of trusted-key.key
 	sed -i -e '/# trust-anchor-file:/c\\ttrust-anchor-file: /etc/unbound/trusted-key.key' doc/example.conf.in
 
-	p=set-aa-bit-from-dnstap_send_identity.patch; echo "--- patch: $p"
-	patch --dry-run -tNp1 -i "${srcdir}"/$p && patch -tNp1 -i "${srcdir}"/$p
+	p=add-aa-nora-mode-hack.patch; echo "--- patch: $p"
+	patch --dry-run -tNp1 -l -i "${srcdir}"/$p && patch -tNp1 -l -i "${srcdir}"/$p || return 1
 
 	autoreconf -vfi
 }
