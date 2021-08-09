@@ -6,7 +6,6 @@
 
 pkgname=unbound-aa
 _pkgname=unbound
-conflicts=(unbound)
 
 pkgver=1.13.1
 pkgrel=2
@@ -16,7 +15,8 @@ url="https://unbound.net/"
 license=(BSD)
 depends=(dnssec-anchors openssl ldns libevent libnghttp2)
 makedepends=(expat systemd)
-provides=(libunbound.so)
+provides=($_pkgname libunbound.so)
+backup=(etc/unbound/unbound.conf)
 
 source=(
 	"https://unbound.net/downloads/${_pkgname}-${pkgver}.tar.gz"
