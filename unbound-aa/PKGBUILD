@@ -1,8 +1,8 @@
 # Based on unbound PKGBUILD in arch-community trunk,
-#   with less stuff built-in and a hacked-on authoritative-proxy mode
-# UNBOUND_AA_NORA_MODE env var enables/disables the new mode
-# Caching and authoritative mode should be normally be mutually-exclusive,
-#   so do not use this hack unless you absolutely know what you're doing
+#   with less stuff built-in and a hacked-on authoritative-proxy mode.
+# UNBOUND_AA_NORA_MODE env var enables/disables the new mode.
+# Caching and authoritative mode should normally be mutually-exclusive,
+#   so do not use this hack unless you absolutely know what you're doing.
 
 pkgname=unbound-aa
 _pkgname=unbound
