@@ -1,5 +1,6 @@
 ## Based on the Waterfox from AUR by random-nick, which is in turn based on official firefox package in the repos.
 # Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91
+# Source repo: https://github.com/WaterfoxCo/Waterfox
 
 pkgname=waterfox
 pkgver=G4.0.1
@@ -38,34 +39,49 @@ prepare() {
 	cd Waterfox-$_archivename
 
 	cat >../mozconfig <<END
-mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
+# From .mozconfig in Waterfox repo
+
+ac_add_options --target=x86_64-pc-linux-gnu
+
+ac_add_options --disable-bootstrap
+ac_add_options --disable-crashreporter
+ac_add_options --disable-debug
+ac_add_options --disable-dmd
+ac_add_options --disable-geckodriver
+ac_add_options --disable-jprof
+ac_add_options --disable-profiling
+ac_add_options --disable-tests
+ac_add_options --disable-trace-logging
+ac_add_options --disable-verify-mar
+ac_add_options --disable-updater
 
 ac_add_options --enable-application=browser
-
-ac_add_options --prefix=/usr
-ac_add_options --enable-release
-ac_add_options --enable-hardening
-ac_add_options --enable-optimize
+ac_add_options --enable-optimize="-Os -w"
 ac_add_options --enable-rust-simd
-ac_add_options --enable-linker=lld
 
-# System libraries
-ac_add_options --with-system-nspr
-ac_add_options --with-system-nss
 
-# Branding
+# Local tweaks
+
+MOZ_REQUIRE_SIGNING=
+
 ac_add_options --with-app-name=waterfox
 ac_add_options --with-app-basename=Waterfox
 ac_add_options --with-branding=browser/branding/waterfox
+ac_add_options --with-l10n-base=$PWD/browser/locales/l10n
 
-# Features
-ac_add_options --enable-alsa
-ac_add_options --enable-crashreporter
+ac_add_options --enable-release
+ac_add_options --enable-hardening
+ac_add_options --enable-optimize
+
+ac_add_options --enable-linker=lld
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
+
+ac_add_options --disable-alsa
 ac_add_options --disable-jack
-ac_add_options --disable-updater
-ac_add_options --disable-tests
-ac_add_options --disable-elf-hack
-ac_add_options --disable-bootstrap
+
+
+# Options for specific build pass follow
 END
 
 	for p in ${local_patches[@]}; do
@@ -83,11 +99,6 @@ build() {
 
 	# LTO needs more open files
 	ulimit -n 4096
-
-	# prevents references to $srcdir being included in error messages
-	# some references still remain in libxul.so and omni.ja
-	CFLAGS+=" -ffile-prefix-map=$srcdir=."
-	CXXFLAGS+=" -ffile-prefix-map=$srcdir=."
 
 	# suppress warnings
 	CFLAGS+=" -w"
