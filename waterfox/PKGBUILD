@@ -61,10 +61,13 @@ ac_add_options --enable-application=browser
 ac_add_options --enable-optimize="-Os -w"
 ac_add_options --enable-rust-simd
 
+MOZ_REQUIRE_SIGNING=
+
 
 # Local tweaks
 
-MOZ_REQUIRE_SIGNING=
+mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
+ac_add_options --prefix=/usr
 
 ac_add_options --with-app-name=waterfox
 ac_add_options --with-app-basename=Waterfox
@@ -73,8 +76,6 @@ ac_add_options --with-l10n-base=$PWD/browser/locales/l10n
 
 ac_add_options --enable-release
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize
-
 ac_add_options --enable-linker=lld
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
