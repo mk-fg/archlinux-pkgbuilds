@@ -219,4 +219,10 @@ END
 	if [[ -e $nssckbi ]]; then
 		ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
 	fi
+
+	echo "--- -------- ----"
+	echo "--- WARNING: See Waterfox issue-2355 before using the package!"
+	echo "--- WARNING: https://github.com/WaterfoxCo/Waterfox/issues/2355#issuecomment-950942152"
+	echo "--- WARNING: It'll probably be patched by the next minor release, so not worth fixing here"
+	echo "--- -------- ----"
 }
