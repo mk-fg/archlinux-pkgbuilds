@@ -25,13 +25,15 @@ options=(!emptydirs !makeflags !strip)
 _archivename=G4.0.1
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
-	$pkgname.desktop )
+	$pkgname.desktop
+	fix_G401_should_report_statistics_build_issue.patch )
 sha256sums=(
 	db0f3aede7f01336bcb3090fe00b2467c2561997426cd5f9cf8e1d53010aaf61
-	3c8a3e73ffcb4670ca25fc7087b9c5d93ebbef2f3be8a33cf81ae424c3f27fa3 )
+	3c8a3e73ffcb4670ca25fc7087b9c5d93ebbef2f3be8a33cf81ae424c3f27fa3
+	SKIP )
 #_disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
-local_patches=()
+local_patches=( fix_G401_should_report_statistics_build_issue.patch )
 for p in 9999-*.patch ; do local_patches+=( $p ); source+=( $p ); sha256sums+=( SKIP ); done
 
 prepare() {
