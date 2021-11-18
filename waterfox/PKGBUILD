@@ -3,7 +3,9 @@
 # Source repo: https://github.com/WaterfoxCo/Waterfox
 
 pkgname=waterfox
-pkgver=G4.0.1
+pkgver=G4.0.3
+_archivename=$pkgver
+
 pkgrel=1
 pkgdesc="Fork of Mozilla Firefox featuring some legacy extensions, removed telemetry and no Pocket integration, current branch."
 arch=(x86_64)
@@ -22,16 +24,15 @@ optdepends=(
 	'speech-dispatcher: Text-to-Speech'
 	'hunspell-en_US: Spell checking, American English')
 options=(!emptydirs !makeflags !strip)
-_archivename=G4.0.1
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop
 	fix_G401_should_report_statistics_build_issue.patch )
 sha256sums=(
-	db0f3aede7f01336bcb3090fe00b2467c2561997426cd5f9cf8e1d53010aaf61
+	ac84e3202ddd1e0b92e0b5d2297f905ec5f27c9779a7225639b2bebb2fd75181
 	3c8a3e73ffcb4670ca25fc7087b9c5d93ebbef2f3be8a33cf81ae424c3f27fa3
 	SKIP )
-#_disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
+# _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 local_patches=( fix_G401_should_report_statistics_build_issue.patch )
 for p in 9999-*.patch ; do local_patches+=( $p ); source+=( $p ); sha256sums+=( SKIP ); done
@@ -87,9 +88,10 @@ ac_add_options --disable-jack
 # Options for specific build pass follow
 END
 
+	local p
 	for p in ${local_patches[@]}; do
 		echo "--- applying local patch: $p"
-		patch --dry-run -tNp1 -i "${srcdir}"/$p && patch -tNp1 -i "${srcdir}"/$p
+		patch --dry-run -tNp1 -i "$srcdir"/$p && patch -tNp1 -i "$srcdir"/$p
 	done
 }
 
@@ -121,22 +123,15 @@ END
 		JARLOG_FILE="$PWD/jarlog" \
 		xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
 		./mach python build/pgo/profileserver.py
+
 	echo "Merging profile data..."
-	for i in *.profraw; do
-		stat -c "Raw profile data file $i found (%s bytes)" $i
-	done
+	local p
+	for p in *.profraw; do stat -c "Raw profile data file $p found (%s bytes)" "$p"; done
 	llvm-profdata merge -o merged.profdata *.profraw
 
-	if [[ ! -s merged.profdata ]]; then
-		echo "No profile data produced."
-		return 1
-	fi
+	[[ -s merged.profdata ]] || { echo >&2 "ERROR: No profile data produced"; return 1; }
 	stat -c "Profile data found (%s bytes)" merged.profdata
-
-	if [[ ! -s jarlog ]]; then
-		echo "No jarlog produced."
-		return 1
-	fi
+	[[ -s jarlog ]] || { echo >&2 "ERROR: No jarlog produced"; return 1; }
 	stat -c "Profile jarlog found (%s bytes)" jarlog
 
 	echo "Removing instrumented browser..."
@@ -149,12 +144,14 @@ ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 END
+
 	else
 	echo "Building browser without PGO..."
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross
 END
 	fi
+
 	./mach build
 }
 
@@ -189,10 +186,10 @@ app.distributor=archlinux
 app.distributor.channel=$pkgname
 END
 
-	local i theme=waterfox
-	for i in 16 32 48 64 128; do
-		install -Dvm644 browser/branding/$theme/default$i.png \
-			"$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$pkgname.png"
+	local p theme=waterfox
+	for p in 16 32 48 64 128; do
+		install -Dvm644 browser/branding/$theme/default$p.png \
+			"$pkgdir/usr/share/icons/hicolor/${p}x${p}/apps/$pkgname.png"
 	done
 	install -Dvm644 browser/branding/$theme/content/about-logo.png \
 		"$pkgdir/usr/share/icons/hicolor/192x192/apps/$pkgname.png"
@@ -204,25 +201,8 @@ END
 	install -Dvm644 ../$pkgname.desktop \
 		"$pkgdir/usr/share/applications/$pkgname.desktop"
 
-	# Install a wrapper to avoid confusion about binary path
-	install -Dvm755 /dev/stdin "$pkgdir/usr/bin/$pkgname" <<END
-#!/bin/sh
-exec /usr/lib/$pkgname/waterfox "\$@"
-END
-
-	# Replace duplicate binary with wrapper
+	# Remove unnecessary duplicate binary
 	# https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-	ln -srfv "$pkgdir/usr/bin/$pkgname" "$pkgdir/usr/lib/$pkgname/waterfox-bin"
-
-	# Use system certificates
-	local nssckbi="$pkgdir/usr/lib/$pkgname/libnssckbi.so"
-	if [[ -e $nssckbi ]]; then
-		ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
-	fi
-
-	echo "--- -------- ----"
-	echo "--- WARNING: See Waterfox issue-2355 before using the package!"
-	echo "--- WARNING: https://github.com/WaterfoxCo/Waterfox/issues/2355#issuecomment-950942152"
-	echo "--- WARNING: It'll probably be patched by the next minor release, so not worth fixing here"
-	echo "--- -------- ----"
+	rm "$pkgdir/usr/lib/$pkgname/waterfox-bin" \
+		|| echo >&2 "WARNING: unnecessary rm for waterfox-bin duplicate binary, clean it up"
 }
