@@ -1,17 +1,17 @@
 _p=conky
 
 pkgname=conky-git
-pkgver=v1.10.8.86.g3d5e152a
+pkgver=v1.12.2.4.g8f5014b9
 pkgrel=1
 pkgdesc='Lightweight system monitor for X'
 url='http://conky.sourceforge.net/'
 license=(BSD GPL)
-arch=(i686 x86_64)
-makedepends=(cmake docbook2x docbook-xsl man-db git)
-depends=(glib2 curl lua51 tolua++ libxml2 libxft libxdamage libxinerama imlib2 cairo wireless_tools libical libpulse)
+arch=(x86_64)
+makedepends=(cmake git)
+depends=(cairo curl glib2 imlib2 libical libpulse libxdamage libxft libxinerama libxml2 lua ncurses wireless_tools)
 conflicts=(conky)
 provides=(conky)
-source=('git+https://github.com/brndnmtthws/conky')
+source=('git+https://github.com/brndnmtthws/conky#branch=main')
 md5sums=(SKIP)
 
 pkgver() {
@@ -33,14 +33,17 @@ build() {
 		-D BUILD_BUILTIN_CONFIG=ON    # Enable builtin default configuration
 		-D BUILD_CMUS=OFF    # Enable support for cmus music player
 		-D BUILD_CURL=ON    # Enable if you want Curl support
+		-D BUILD_DOCS=OFF    # Build documentation
 		-D BUILD_EVE=OFF    # Enable if you want Eve-Online skill monitoring support
 		-D BUILD_HDDTEMP=OFF    # Support for hddtemp
+    -D BUILD_HSV_GRADIENT=ON    # Enable gradient in HSV colour space
 		-D BUILD_HTTP=OFF    # Enable if you want HTTP support
 		-D BUILD_I18N=ON    # Enable if you want internationalization support
 		-D BUILD_IBM=OFF    # Support for IBM/Lenovo notebooks
 		-D BUILD_ICAL=ON    # Enable if you want iCalendar (RFC 5545) support
 		-D BUILD_ICONV=ON    # Enable iconv support
 		-D BUILD_IMLIB2=ON    # Enable Imlib2 support
+    -D BUILD_INTEL_BACKLIGHT=OFF    # Enable support for Intel backlight
 		-D BUILD_IOSTATS=ON    # Enable disk I/O stats
 		-D BUILD_IPV6=ON    # Enable if you want IPv6 support
 		-D BUILD_IRC=OFF    # Enable if you want IRC support
