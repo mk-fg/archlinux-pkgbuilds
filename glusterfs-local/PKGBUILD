@@ -9,7 +9,7 @@ pkgname=glusterfs-local
 conflicts=(glusterfs)
 
 pkgver=3.10.0
-pkgrel=5
+pkgrel=6
 
 pkgdesc='Cluster filesystem capable of scaling to several petabytes.'
 arch=(i686 x86_64)
@@ -24,6 +24,7 @@ backup=(
 	'etc/glusterfs/glusterfs-georep-logrotate'
 	'etc/glusterfs/glusterfs-logrotate' )
 
+makedepends=(rpcsvc-proto)
 depends=(fuse python2 libxml2 libaio liburcu libtirpc attr which)
 optdepends=('rpcbind: NFS' 'glib2: qemu-block')
 
@@ -46,7 +47,7 @@ prepare() {
 
 build() {
 	cd "$srcdir"/$_p-$pkgver
-	export LDFLAGS=-ltirpc CFLAGS=-I/usr/include/tirpc
+	export LDFLAGS=-ltirpc CFLAGS='-I/usr/include/tirpc -fcommon'
 	./autogen.sh
 	./configure \
 		--prefix=/usr \
