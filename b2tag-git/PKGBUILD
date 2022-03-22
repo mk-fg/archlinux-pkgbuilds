@@ -1,0 +1,30 @@
+_p=b2tag
+
+pkgname=${_p}-git
+pkgver=0.2
+pkgrel=1
+pkgdesc='Tool to detect data corruption with checksums in extended attributes.'
+arch=(x86_64 aarch64)
+url='https://github.com/modelrockettier/b2tag'
+license=(GPL2)
+depends=()
+makedepends=()
+source=("${_p}::git+$url")
+sha256sums=(SKIP)
+
+pkgver() {
+	cd $_p
+	rel=$(awk '$1=="VERSION_FALLBACK" {sub(/-nogit$/, ""); print $NF}' Makefile)
+	[[ -n "$rel" ]] || exit 1
+	printf "%s.%s.%s" "$rel" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd $_p
+	make PREFIX=/usr
+}
+
+package() {
+	cd $_p
+	make PREFIX=/usr DESTDIR="$pkgdir" install
+}
