@@ -3,7 +3,7 @@
 # Source repo: https://github.com/WaterfoxCo/Waterfox
 
 pkgname=waterfox
-pkgver=G4.0.8
+pkgver=G4.1.1
 _archivename=$pkgver
 
 pkgrel=1
@@ -28,7 +28,7 @@ source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop )
 sha256sums=(
-	eb37c8fb95dc1862f3ce94354bbecc0ff66ead5b6754e681d45f55f562c8e402
+	f33c00c0519314a9c9597dfe614c90f5ee5086355567610c741dbb2442f540ff
 	3c8a3e73ffcb4670ca25fc7087b9c5d93ebbef2f3be8a33cf81ae424c3f27fa3 )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
@@ -44,6 +44,10 @@ prepare() {
 
 ac_add_options --target=x86_64-pc-linux-gnu
 
+ac_add_options --enable-pulseaudio
+ac_add_options --disable-alsa
+ac_add_options --disable-jack
+
 ac_add_options --disable-bootstrap
 ac_add_options --disable-crashreporter
 ac_add_options --disable-debug
@@ -54,34 +58,35 @@ ac_add_options --disable-profiling
 ac_add_options --disable-tests
 ac_add_options --disable-trace-logging
 ac_add_options --disable-verify-mar
-ac_add_options --disable-updater
 
 ac_add_options --enable-application=browser
-ac_add_options --enable-optimize="-Os -w"
+ac_add_options --enable-optimize="-O2 -w"
 ac_add_options --enable-rust-simd
+ac_add_options --disable-updater
 
+ac_add_options --with-app-basename=Waterfox
+ac_add_options --with-app-name=waterfox
+ac_add_options --with-distribution-id=net.waterfox
+ac_add_options --with-branding=browser/branding/waterfox
+ac_add_options --with-l10n-base=$PWD/browser/locales/l10n
+
+export RUSTC_OPT_LEVEL=2
+export MOZ_INCLUDE_SOURCE_INFO=1
+mk_add_options AUTOCLOBBER=1
 MOZ_REQUIRE_SIGNING=
-
 
 # Local tweaks
 
+mk_add_options MOZ_MAKE_FLAGS=-j4
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
-ac_add_options --prefix=/usr
 
-ac_add_options --with-app-name=waterfox
-ac_add_options --with-app-basename=Waterfox
-ac_add_options --with-branding=browser/branding/waterfox
-ac_add_options --with-l10n-base=$PWD/browser/locales/l10n
+ac_add_options --prefix=/usr
 
 ac_add_options --enable-release
 ac_add_options --enable-hardening
 ac_add_options --enable-linker=lld
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
-
-ac_add_options --disable-alsa
-ac_add_options --disable-jack
-
 
 # Options for specific build pass follow
 END
