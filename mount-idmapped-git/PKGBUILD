@@ -1,0 +1,28 @@
+_p=mount-idmapped
+
+pkgname=${_p}-git
+pkgver=1
+pkgrel=1
+pkgdesc="Tool to use linux-5.12+ mount idmapping features."
+arch=(i686 x86_64)
+url='https://github.com/brauner/mount-idmapped'
+license=(GPL-3)
+depends=()
+makedepends=(git)
+source=("${_p}::git+$url")
+sha256sums=(SKIP)
+
+pkgver() {
+	cd $_p
+	printf "%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd $_p
+	gcc -O2 -o mount-idmapped mount-idmapped.c
+}
+
+package() {
+	cd $_p
+	install -DT -m0755 mount-idmapped "$pkgdir"/usr/bin/mount-idmapped
+}
