@@ -3,7 +3,7 @@
 # Source repo: https://github.com/WaterfoxCo/Waterfox
 
 pkgname=waterfox
-pkgver=G4.1.1
+pkgver=G4.1.4
 _archivename=$pkgver
 
 pkgrel=1
@@ -27,9 +27,7 @@ options=(!emptydirs !makeflags !strip)
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop )
-sha256sums=(
-	f33c00c0519314a9c9597dfe614c90f5ee5086355567610c741dbb2442f540ff
-	3c8a3e73ffcb4670ca25fc7087b9c5d93ebbef2f3be8a33cf81ae424c3f27fa3 )
+sha256sums=( 2d2c5a13f7b0b69275829075c34261ff383614b36c00f60d54cebfef86c9cd11 SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 local_patches=()
