@@ -1,0 +1,17 @@
+Related links:
+	https://bugzilla.mozilla.org/show_bug.cgi?id=1773259
+	https://github.com/canonical/firefox-snap/commit/5622734942524846fb0eb7108918c8cd8557fde3
+
+diff --git a/gfx/webrender_bindings/webrender_ffi.h b/gfx/webrender_bindings/webrender_ffi.h
+index b1d67b1..eb79974 100644
+--- a/gfx/webrender_bindings/webrender_ffi.h
++++ b/gfx/webrender_bindings/webrender_ffi.h
+@@ -73,8 +73,6 @@ struct WrPipelineInfo;
+ struct WrPipelineIdAndEpoch;
+ using WrPipelineIdEpochs = nsTArray<WrPipelineIdAndEpoch>;
+ 
+-const uint64_t ROOT_CLIP_CHAIN = ~0;
+-
+ }  // namespace wr
+ }  // namespace mozilla
+ 

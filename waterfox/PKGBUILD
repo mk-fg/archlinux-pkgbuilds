@@ -29,7 +29,8 @@ sha256sums=( f6e85c7bf41f16fd5d55fb1a70e2836cb8f7ec2f30e663af52bf4360ad9195a8 SK
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 local_patches=()
-for p in 9999-*.patch ; do local_patches+=( $p ); source+=( $p ); sha256sums+=( SKIP ); done
+for p in [0-9][0-9][0-9][0-9].*.patch
+	do local_patches+=( $p ); source+=( $p ); sha256sums+=( SKIP ); done
 
 prepare() {
 	mkdir -p mozbuild
