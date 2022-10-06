@@ -1,19 +1,19 @@
 diff --git a/dom/base/Document.cpp b/dom/base/Document.cpp
-index 132c0ecbfd..e00d669704 100644
+index 3efc8c5..2d1c66b 100644
 --- a/dom/base/Document.cpp
 +++ b/dom/base/Document.cpp
-@@ -16355,10 +16355,10 @@ void Document::RemoveToplevelLoadingDocument(Document* aDoc) {
+@@ -17807,10 +17807,10 @@ ColorScheme Document::DefaultColorScheme() const {
+ }
  
- StylePrefersColorScheme Document::PrefersColorScheme(
-     IgnoreRFP aIgnoreRFP) const {
+ ColorScheme Document::PreferredColorScheme(IgnoreRFP aIgnoreRFP) const {
 -  if (aIgnoreRFP == IgnoreRFP::No &&
 -      nsContentUtils::ShouldResistFingerprinting(this)) {
--    return StylePrefersColorScheme::Light;
+-    return ColorScheme::Light;
 -  }
 +  // if (aIgnoreRFP == IgnoreRFP::No &&
 +  //     nsContentUtils::ShouldResistFingerprinting(this)) {
-+  //   return StylePrefersColorScheme::Light;
++  //   return ColorScheme::Light;
 +  // }
  
    if (nsPresContext* pc = GetPresContext()) {
-     if (auto devtoolsOverride = pc->GetOverridePrefersColorScheme()) {
+     if (auto scheme = pc->GetOverriddenOrEmbedderColorScheme()) {

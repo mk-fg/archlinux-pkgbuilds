@@ -1,9 +1,9 @@
 ## Based on the Waterfox from AUR by random-nick, which is in turn based on official firefox package in the repos.
-# Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91
+# Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91, G5.0 = 102
 # Source repo: https://github.com/WaterfoxCo/Waterfox
 
 pkgname=waterfox
-pkgver=G4.1.4
+pkgver=G5.0.1
 _archivename=$pkgver
 
 pkgrel=1
@@ -11,23 +11,21 @@ pkgdesc="Fork of Mozilla Firefox featuring some legacy extensions, removed telem
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://www.waterfox.net/"
-depends=(gtk3 libxt mime-types dbus-glib nss ttf-font)
+depends=(gtk3 libxt mime-types dbus-glib ffmpeg libpulse nss ttf-font)
 makedepends=(
 	unzip zip diffutils yasm mesa imake inetutils
 	xorg-server-xvfb autoconf2.13 rust clang llvm lld
-	cbindgen nasm libpulse nodejs dump_syms
-	python python-psutil python-setuptools python-zstandard )
+	nodejs cbindgen nasm python dump_syms
+	wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi )
 optdepends=(
 	'libnotify: Notification integration'
-	'libpulse: Audio support via Pulseaudio'
-	'ffmpeg: Multimedia playback'
 	'speech-dispatcher: Text-to-Speech'
 	'hunspell-en_US: Spell checking, American English')
-options=(!emptydirs !makeflags !strip)
+options=(!emptydirs !makeflags !strip !lto !debug)
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop )
-sha256sums=( 2d2c5a13f7b0b69275829075c34261ff383614b36c00f60d54cebfef86c9cd11 SKIP )
+sha256sums=( f6e85c7bf41f16fd5d55fb1a70e2836cb8f7ec2f30e663af52bf4360ad9195a8 SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 local_patches=()
@@ -38,53 +36,54 @@ prepare() {
 	cd Waterfox-$_archivename
 
 	cat >../mozconfig <<END
-# From .mozconfig in Waterfox repo
+# From .mozconfig-x86_64-pc-linux-gnu in Waterfox repo, modified
 
 ac_add_options --target=x86_64-pc-linux-gnu
+
+ac_add_options --enable-release
+ac_add_options --enable-optimize="-O2 -w"
+ac_add_options --enable-rust-simd
+export RUSTC_OPT_LEVEL=2
 
 ac_add_options --enable-pulseaudio
 ac_add_options --disable-alsa
 ac_add_options --disable-jack
 
-ac_add_options --disable-bootstrap
 ac_add_options --disable-crashreporter
 ac_add_options --disable-debug
 ac_add_options --disable-dmd
 ac_add_options --disable-geckodriver
 ac_add_options --disable-jprof
 ac_add_options --disable-profiling
-ac_add_options --disable-tests
 ac_add_options --disable-trace-logging
 ac_add_options --disable-verify-mar
+ac_add_options --disable-updater
 
 ac_add_options --enable-application=browser
-ac_add_options --enable-optimize="-O2 -w"
-ac_add_options --enable-rust-simd
-ac_add_options --disable-updater
+ac_add_options --enable-install-strip
+ac_add_options --enable-strip
+ac_add_options --disable-bootstrap
+ac_add_options --disable-tests
 
 ac_add_options --with-app-basename=Waterfox
 ac_add_options --with-app-name=waterfox
+ac_add_options --with-branding=waterfox/browser/branding
 ac_add_options --with-distribution-id=net.waterfox
-ac_add_options --with-branding=browser/branding/waterfox
-ac_add_options --with-l10n-base=$PWD/browser/locales/l10n
+ac_add_options --with-l10n-base="$PWD"/waterfox/browser/locales
 
-export RUSTC_OPT_LEVEL=2
-export MOZ_INCLUDE_SOURCE_INFO=1
 mk_add_options AUTOCLOBBER=1
-MOZ_REQUIRE_SIGNING=
+mk_add_options MOZ_OBJDIR=./obj-"$(uname -s)"-"$(uname -m)"
+export MOZ_REQUIRE_SIGNING=
 
 # Local tweaks
 
 mk_add_options MOZ_MAKE_FLAGS=-j4
-mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
-
 ac_add_options --prefix=/usr
-
-ac_add_options --enable-release
 ac_add_options --enable-hardening
 ac_add_options --enable-linker=lld
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Options for specific build pass follow
 END
@@ -101,7 +100,7 @@ build() {
 
 	export MOZ_NOSPAM=1
 	export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
-	export MACH_USE_SYSTEM_PYTHON=1
+	export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
 
 	# LTO needs more open files
 	ulimit -n 4096
@@ -112,33 +111,28 @@ build() {
 
 	if [[ -z $_disable_pgo ]]; then
 	# Do 3-tier PGO
-	echo "Building instrumented browser..."
+	echo "----- Building instrumented browser -----"
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 END
 	./mach build
 	./mach package
 
-	echo "Profiling instrumented browser..."
+	echo "----- Profiling instrumented browser -----"
 	LLVM_PROFDATA=llvm-profdata \
 		JARLOG_FILE="$PWD/jarlog" \
 		xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
 		./mach python build/pgo/profileserver.py
-
-	echo "Merging profile data..."
-	local p
-	for p in *.profraw; do stat -c "Raw profile data file $p found (%s bytes)" "$p"; done
-	llvm-profdata merge -o merged.profdata *.profraw
 
 	[[ -s merged.profdata ]] || { echo >&2 "ERROR: No profile data produced"; return 1; }
 	stat -c "Profile data found (%s bytes)" merged.profdata
 	[[ -s jarlog ]] || { echo >&2 "ERROR: No jarlog produced"; return 1; }
 	stat -c "Profile jarlog found (%s bytes)" jarlog
 
-	echo "Removing instrumented browser..."
+	echo "----- Removing instrumented browser -----"
 	./mach clobber
 
-	echo "Building optimized browser..."
+	echo "----- Building optimized browser -----"
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross
 ac_add_options --enable-profile-use=cross
@@ -147,7 +141,7 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 END
 
 	else
-	echo "Building browser without PGO..."
+	echo "----- Building browser without PGO -----"
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross
 END
