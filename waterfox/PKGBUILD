@@ -182,16 +182,16 @@ app.distributor=archlinux
 app.distributor.channel=$pkgname
 END
 
-	local p theme=waterfox
-	for p in 16 32 48 64 128; do
-		install -Dvm644 browser/branding/$theme/default$p.png \
+	local p
+	for p in 16 32 48 64 128 256; do
+		install -Dvm644 waterfox/browser/branding/default$p.png \
 			"$pkgdir/usr/share/icons/hicolor/${p}x${p}/apps/$pkgname.png"
 	done
-	install -Dvm644 browser/branding/$theme/content/about-logo.png \
+	install -Dvm644 waterfox/browser/branding/content/about-logo.png \
 		"$pkgdir/usr/share/icons/hicolor/192x192/apps/$pkgname.png"
-	install -Dvm644 browser/branding/$theme/content/about-logo@2x.png \
+	install -Dvm644 waterfox/browser/branding/content/about-logo@2x.png \
 		"$pkgdir/usr/share/icons/hicolor/384x384/apps/$pkgname.png"
-	install -Dvm644 browser/branding/$theme/content/about-logo.svg \
+	install -Dvm644 waterfox/browser/branding/content/about-logo.svg \
 		"$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
 
 	install -Dvm644 ../$pkgname.desktop \
