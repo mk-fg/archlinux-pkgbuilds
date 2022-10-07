@@ -1,0 +1,13 @@
+diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browser-sets.inc
+index 791526f..3da9ad7 100644
+--- a/browser/base/content/browser-sets.inc
++++ b/browser/base/content/browser-sets.inc
+@@ -300,7 +300,7 @@
+ 
+     <key id="key_privatebrowsing" command="Tools:PrivateBrowsing" data-l10n-id="private-browsing-shortcut"
+          modifiers="accel,shift" reserved="true"/>
+-    <key id="key_screenshot" data-l10n-id="screenshot-shortcut" command="Browser:Screenshot" modifiers="accel,shift"/>
++    <key id="key_screenshot" data-l10n-id="screenshot-shortcut" command="Browser:Screenshot" modifiers="accel,alt"/>
+     <key id="key_sanitize" command="Tools:Sanitize" keycode="VK_DELETE" modifiers="accel,shift"/>
+ #ifdef XP_MACOSX
+     <key id="key_sanitize_mac" command="Tools:Sanitize" keycode="VK_BACK" modifiers="accel,shift"/>
