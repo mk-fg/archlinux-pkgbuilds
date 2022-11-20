@@ -3,7 +3,7 @@
 # Source repo: https://github.com/WaterfoxCo/Waterfox
 
 pkgname=waterfox
-pkgver=G5.0.1
+pkgver=G5.1
 _archivename=$pkgver
 
 pkgrel=1
@@ -25,7 +25,7 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop )
-sha256sums=( f6e85c7bf41f16fd5d55fb1a70e2836cb8f7ec2f30e663af52bf4360ad9195a8 SKIP )
+sha256sums=( b864aae71527ac6de909d93b576d257b817e79c99231ef163e4746fb889c6760 SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 local_patches=()
@@ -112,14 +112,14 @@ build() {
 
 	if [[ -z $_disable_pgo ]]; then
 	# Do 3-tier PGO
-	echo "----- Building instrumented browser -----"
+	echo; echo "----- Building instrumented browser -----"; echo
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 END
 	./mach build
 	./mach package
 
-	echo "----- Profiling instrumented browser -----"
+	echo; echo "----- Profiling instrumented browser -----"; echo
 	LLVM_PROFDATA=llvm-profdata \
 		JARLOG_FILE="$PWD/jarlog" \
 		xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
@@ -130,10 +130,10 @@ END
 	[[ -s jarlog ]] || { echo >&2 "ERROR: No jarlog produced"; return 1; }
 	stat -c "Profile jarlog found (%s bytes)" jarlog
 
-	echo "----- Removing instrumented browser -----"
+	echo; echo "----- Removing instrumented browser -----"; echo
 	./mach clobber
 
-	echo "----- Building optimized browser -----"
+	echo; echo "----- Building optimized browser -----"; echo
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross
 ac_add_options --enable-profile-use=cross
@@ -142,7 +142,7 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 END
 
 	else
-	echo "----- Building browser without PGO -----"
+	echo; echo "----- Building browser without PGO -----"; echo
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross
 END
@@ -153,6 +153,7 @@ END
 
 package() {
 	cd Waterfox-$_archivename
+	echo; echo "----- Packaging -----"; echo
 	DESTDIR="$pkgdir" ./mach install
 
 	local vendorjs="$pkgdir/usr/lib/$pkgname/browser/defaults/preferences/vendor.js"
