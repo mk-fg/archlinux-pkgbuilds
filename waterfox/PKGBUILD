@@ -3,7 +3,7 @@
 # Source repo: https://github.com/WaterfoxCo/Waterfox
 
 pkgname=waterfox
-pkgver=G5.1
+pkgver=G5.1.1
 _archivename=$pkgver
 
 pkgrel=1
@@ -25,7 +25,7 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop )
-sha256sums=( b864aae71527ac6de909d93b576d257b817e79c99231ef163e4746fb889c6760 SKIP )
+sha256sums=( ab5a5359f3416119ec46bc122c7c58d2ae3fc62cf3e162231a21ba7f65882e9e SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 local_patches=()
