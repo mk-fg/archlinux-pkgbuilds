@@ -1,0 +1,34 @@
+diff --git a/src/dev.c b/src/dev.c
+index 2d662a6..eabdec4 100644
+--- a/src/dev.c
++++ b/src/dev.c
+@@ -268,6 +268,7 @@ fido_dev_info_manifest(fido_dev_info_t *devlist, size_t ilen, size_t *olen)
+ 	run_manifest(devlist, ilen, olen, "nfc", fido_nfc_manifest);
+ #endif
+ #ifdef USE_PCSC
++	if (getenv("FIDO2_USE_PCSC"))
+ 	run_manifest(devlist, ilen, olen, "pcsc", fido_pcsc_manifest);
+ #endif
+ #ifdef USE_WINHELLO
+diff --git a/src/pcsc.c b/src/pcsc.c
+index d7bd6c6..125c0d2 100644
+--- a/src/pcsc.c
++++ b/src/pcsc.c
+@@ -183,6 +183,8 @@ fido_pcsc_manifest(fido_dev_info_t *devlist, size_t ilen, size_t *olen)
+ 
+ 	*olen = 0;
+ 
++	if (!getenv("FIDO2_USE_PCSC")) return FIDO_OK;
++
+ 	if (ilen == 0)
+ 		return FIDO_OK;
+ 	if (devlist == NULL)
+@@ -247,6 +249,8 @@ fido_pcsc_open(const char *path)
+ 	DWORD prot = 0;
+ 	LONG s;
+ 
++	if (!getenv("FIDO2_USE_PCSC")) goto fail;
++
+ 	memset(&req, 0, sizeof(req));
+ 
+ 	if ((s = SCardEstablishContext(SCARD_SCOPE_SYSTEM, NULL, NULL,
