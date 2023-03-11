@@ -17,8 +17,9 @@ for p in ${_patches[@]}; do source+=($p); sha256sums+=(SKIP); done
 
 prepare() {
   cd libfido2-${pkgver}
-	for p in ${_patches[@]}
-	do patch --dry-run -tNp1 -i "$srcdir"/$p >/dev/null && patch -tNp1 -i "$srcdir"/$p
+	for p in ${_patches[@]}; do
+		patch --dry-run -tNp1 -i "$srcdir"/$p >/dev/null \
+			&& patch -tNp1 -i "$srcdir"/$p || { echo >&2 "ERROR: patch failed - $p"; exit 1; }
 	done
 }
 

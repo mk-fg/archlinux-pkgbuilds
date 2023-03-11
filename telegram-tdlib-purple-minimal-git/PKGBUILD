@@ -25,7 +25,7 @@ prepare() {
 	cd $pkgname
 	# See https://github.com/ars3niy/tdlib-purple/pull/154
 	p=PR154-fix-build-with-tdlib-1.8.0.patch
-	patch --dry-run -tNp1 -R -i "$srcdir"/$p >/dev/null || patch -tNp1 -i "$srcdir"/$p
+	patch --dry-run -tNp1 -R -i "$srcdir"/$p >/dev/null || patch -tNp1 -i "$srcdir"/$p || || exit 1
 }
 
 build() {
