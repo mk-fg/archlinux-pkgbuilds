@@ -1,17 +1,15 @@
 diff --git a/dom/base/Document.cpp b/dom/base/Document.cpp
-index 3efc8c5..2d1c66b 100644
+index 0b5db538..5e637568 100644
 --- a/dom/base/Document.cpp
 +++ b/dom/base/Document.cpp
-@@ -17807,10 +17807,10 @@ ColorScheme Document::DefaultColorScheme() const {
+@@ -17818,9 +17818,9 @@ ColorScheme Document::DefaultColorScheme() const {
  }
  
  ColorScheme Document::PreferredColorScheme(IgnoreRFP aIgnoreRFP) const {
--  if (aIgnoreRFP == IgnoreRFP::No &&
--      nsContentUtils::ShouldResistFingerprinting(this)) {
+-  if (ShouldResistFingerprinting() && aIgnoreRFP == IgnoreRFP::No) {
 -    return ColorScheme::Light;
 -  }
-+  // if (aIgnoreRFP == IgnoreRFP::No &&
-+  //     nsContentUtils::ShouldResistFingerprinting(this)) {
++  // if (ShouldResistFingerprinting() && aIgnoreRFP == IgnoreRFP::No) {
 +  //   return ColorScheme::Light;
 +  // }
  
