@@ -1,0 +1,26 @@
+pkgname=mpy-cross
+pkgver=1.20.0
+pkgrel=1
+pkgdesc="MicroPython cross compiler for .py scripts into .mpy files"
+arch=(any)
+url=https://docs.micropython.org/en/latest/reference/mpyfiles.html
+license=(MIT)
+depends=()
+makedepends=(python3)
+source=(https://github.com/micropython/micropython/releases/download/v${pkgver}/micropython-${pkgver}.tar.xz)
+sha256sums=(098ef8e40abdc62551b5460d0ffe9489074240c0cb5589ca3c3a425551beb9bf)
+
+prepare() {
+	cd micropython-${pkgver}/mpy-cross
+	sed -i 's:CWARN = -Wall -Werror:CWARN =:' Makefile
+}
+
+build() {
+	cd micropython-${pkgver}/mpy-cross
+	make
+}
+
+package() {
+	cd micropython-${pkgver}/mpy-cross
+	install -Dm0755 build/mpy-cross ${pkgdir}/usr/bin/mpy-cross
+}
