@@ -1,0 +1,41 @@
+_p=moment
+
+pkgname=${_p}-git
+pkgver=1
+pkgrel=1
+pkgdesc='A Matrix client; forked from Mirage.'
+arch=(x86_64)
+url='https://mx-moment.xyz/'
+license=(LGPL3)
+depends=(
+	qt5-base qt5-declarative qt5-quickcontrols2 qt5-svg
+	qt5-graphicaleffects qt5-imageformats
+	libx11 libxss alsa-lib )
+makedepends=(cmake git)
+source=("${_p}::git+https://gitlab.com/mx-moment/moment.git")
+sha256sums=(SKIP)
+
+pkgver() {
+	cd $_p
+	local tag=$(git tag --sort=-v:refname | head -1)
+	local commits_since=$(git rev-list $tag..HEAD --count)
+	echo "$tag.r$commits_since.$(git log --pretty=format:'%h' -n 1)"
+}
+
+prepare() {
+	cd $_p
+	git submodule update --init --recursive
+}
+
+build() {
+	cd $_p
+	export QT_SELECT=5
+	make clean ||:
+	qmake PREFIX=/usr moment.pro
+	make
+}
+
+package() {
+	cd $_p
+	make INSTALL_ROOT="${pkgdir}" install
+}
