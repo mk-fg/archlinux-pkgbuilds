@@ -3,13 +3,13 @@ _p=moment
 pkgname=${_p}-git
 pkgver=1
 pkgrel=1
-pkgdesc='A Matrix client; forked from Mirage.'
+pkgdesc='A Matrix client; forked from Mirage'
 arch=(x86_64)
 url='https://mx-moment.xyz/'
 license=(LGPL3)
 depends=(
-	qt5-base qt5-declarative qt5-quickcontrols2 qt5-svg
-	qt5-graphicaleffects qt5-imageformats
+	qt5-base qt5-declarative qt5-quickcontrols2
+	qt5-svg qt5-graphicaleffects qt5-imageformats
 	libx11 libxss alsa-lib )
 makedepends=(cmake git)
 source=("${_p}::git+https://gitlab.com/mx-moment/moment.git")
