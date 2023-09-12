@@ -1,0 +1,37 @@
+_p=feh
+
+pkgname=$_p-ext
+pkgver=3.10
+pkgrel=1
+pkgdesc='Patched version of "feh" image viewer with extra functionality'
+url='https://feh.finalrewind.org/'
+license=(MIT)
+arch=(x86_64)
+depends=(curl file imlib2 libexif libxinerama)
+makedepends=(libxt)
+source=("$url$_p-$pkgver.tar.bz2")
+sha256sums=(1d71d1f6dcfe9ffee5e2766969a11978f7eb4fac7d7ae556f104c11f9c57cc98)
+
+local_patches=()
+for p in [0-9][0-9][0-9][0-9].*.patch
+	do local_patches+=( $p ); source+=( $p ); sha256sums+=( SKIP ); done
+
+prepare() {
+	cd "$_p-$pkgver"
+	local p
+	for p in ${local_patches[@]}; do
+		echo "--- applying local patch: $p"
+		patch --dry-run -tNp1 -i "$srcdir"/$p && patch -tNp1 -i "$srcdir"/$p \
+			|| { echo >&2 "ERROR: patch failed - $p"; exit 1; }
+	done
+}
+
+build() {
+	cd "$_p-$pkgver"
+	make PREFIX=/usr exif=1 help=1 inotify=1 magic=1 stat64=1
+}
+
+package() {
+	cd "$_p-$pkgver"
+	install -Dm755 src/feh "$pkgdir"/usr/bin/feh-ext
+}
