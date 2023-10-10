@@ -1,22 +1,22 @@
 diff --git a/toolkit/components/resistfingerprinting/nsRFPService.cpp b/toolkit/components/resistfingerprinting/nsRFPService.cpp
-index e36f8827..21937147 100644
+index 42dca79..c923bde 100644
 --- a/toolkit/components/resistfingerprinting/nsRFPService.cpp
 +++ b/toolkit/components/resistfingerprinting/nsRFPService.cpp
-@@ -693,7 +693,7 @@ void nsRFPService::UpdateRFPPref() {
-       StaticPrefs::javascript_options_use_fdlibm_for_sin_cos_tan() ||
-       privacyResistFingerprinting);
+@@ -226,7 +226,7 @@ void nsRFPService::UpdateRFPPref() {
+     return;
+   }
  
--  if (privacyResistFingerprinting) {
-+  if (privacyResistFingerprinting && false) {
+-  if (resistFingerprinting) {
++  if (resistFingerprinting && false) {
      PR_SetEnv("TZ=UTC");
    } else if (sInitialized) {
      // We will not touch the TZ value if 'privacy.resistFingerprinting' is false
-@@ -728,7 +728,7 @@ void nsRFPService::UpdateRFPPref() {
+@@ -261,7 +261,7 @@ void nsRFPService::UpdateRFPPref() {
  
    // If and only if the time zone was changed above, propagate the change to the
    // <time.h> functions and the JS runtime.
--  if (privacyResistFingerprinting || sInitialized) {
-+  if ((privacyResistFingerprinting && false) || sInitialized) {
+-  if (resistFingerprinting || sInitialized) {
++  if ((resistFingerprinting && false) || sInitialized) {
      // localtime_r (and other functions) may not call tzset, so do this here
      // after changing TZ to ensure all <time.h> functions use the new time zone.
  #if defined(XP_WIN)
