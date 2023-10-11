@@ -1,5 +1,5 @@
 ## Based on the Waterfox from AUR by random-nick, which is in turn based on official firefox package in the repos.
-# Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91, G5.0 = 102
+# Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91, G5.0 = 102, G6.0 = 115
 # Source repo: https://github.com/WaterfoxCo/Waterfox
 
 pkgname=waterfox
