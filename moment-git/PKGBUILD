@@ -2,7 +2,7 @@ _p=moment
 
 pkgname=${_p}-git
 pkgver=1
-pkgrel=1
+pkgrel=2
 pkgdesc='A Matrix client; forked from Mirage'
 arch=(x86_64)
 url='https://mx-moment.xyz/'
@@ -38,4 +38,9 @@ build() {
 package() {
 	cd $_p
 	make INSTALL_ROOT="${pkgdir}" install
+
+	req_file=/usr/share/doc/$_p/requirements.txt
+	install -Dvm644 requirements.txt "$pkgdir/$req_file"
+	echo >&2 "NOTE: This build REQIRES installing python dependency packages manually"
+	echo >&2 "NOTE: Use 'python -m venv ...' or just pip and $req_file directly for that"
 }
