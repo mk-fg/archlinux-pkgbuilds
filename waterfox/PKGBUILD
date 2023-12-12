@@ -1,10 +1,10 @@
 ## Based on the Waterfox from AUR by random-nick, which is in turn based on official firefox package in the repos.
 # Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91, G5.0 = 102, G6.0 = 115
 # Source repo: https://github.com/WaterfoxCo/Waterfox
-# This build requires large amount of RAM (30-40 gigs), presumably due of full-lto - https://bugs.gentoo.org/837122
+# This build requires large amount of RAM (30-40 gigs), using gcc with pgo+lto - https://bugs.gentoo.org/837122
 
 pkgname=waterfox
-pkgver=G6.0.5
+pkgver=G6.0.6
 _archivename=$pkgver
 
 pkgrel=1
@@ -57,9 +57,14 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop )
-b2sums=( 54b9293862612650e3d5311c07b617afe631b4e0201d3cf46df2bb70e4f3ee0eb8d805fe5d42805dee121815912e1ae5e4578ce4cdbd621935e5872fb532a3bc SKIP )
+b2sums=( 5763045bbb8cbdffa85a8348fc75e214ed2b3adaf72af1a19f3090b58a14798e6b1df28e1a6f73c69d27df1c6338b151fd025873f46e95135c8ed084f48fc9b5 SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
+
+# Note on ResistFingerPrinting (RFP) relax-patches: these are intended for full RFP mode
+#   Recently there is also a "lite" FPP mode, see here for details - https://github.com/arkenfox/user.js/issues/1716
+#   "RFPTargets don't really interact with the RFP pref" (for FPP), so stuff is patched out of there
+#   Remote Settings/Overrides (Mozilla list of which sites to exclude from FPP) also shouldn't affect RFP
 local_patches=()
 for p in [0-9][0-9][0-9][0-9].*.patch
 	do local_patches+=( $p ); source+=( $p ); b2sums+=( SKIP ); done
