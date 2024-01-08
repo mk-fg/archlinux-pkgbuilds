@@ -19,75 +19,44 @@ depends=(
 package() {
 	cd "$pkgdir"
 
-	# batman-adv with global IPv6 to run some overlay on top of
-	mkdir -p etc/systemd/network
-	ln -s /dev/null etc/systemd/network/80-container-host0.network
-	cat >etc/systemd/network/50-bat.netdev <<'EOF'
-[NetDev]
-Name=bat0
-Kind=batadv
-MTUBytes=1440
-EOF
-	cat >etc/systemd/network/50-bat.network <<'EOF'
-[Match]
-Name=bat0
+	### Network: batman-adv with global IPv6 to run some overlay on top of it
+	# Static network-config script is used here, as
+	#   systemd-networkd breaks something and fails in every other release,
+	#   and never worked for some interface types to begin with (e.g. mtu setting).
+	mkdir -p usr/local/bin etc/systemd/system{,/multi-user.target.wants}
 
-[Link]
-MTUBytes=1440
+	cat >usr/local/bin/net <<'EOF'
+#!/bin/bash
+set -eEo pipefail
+trap 'echo >&2 "----- FAILURE at line $LINENO :: $BASH_COMMAND"' ERR
 
-[Network]
-DHCP=no
-LLMNR=no
-LLDP=no
-IPv6AcceptRA=no
+ip link show bat0 &>/dev/null || ip link add bat0 type batadv
+ip link set bat0 mtu 1440
+ip link set host0 master bat0 up
 
 ## ip-ext ipv6-name -mbp 2a02:17d0:201:8b00::/64 can-name
-# Address=2a02:17d0:201:8b00::/64
-# Gateway=2a02:17d0:201:8b00:fc27:c46f:b9a4:a2d4
-EOF
-	cat >etc/systemd/network/66-ve-host.network <<'EOF'
-[Match]
-Name=host*
-Virtualization=container
+# ip addr rep 2a02:17d0:201:8b00:.../64 dev bat0
+ip link set bat0 mtu 1440 up
 
-[Network]
-DHCP=no
-BatmanAdvanced=bat0
+gw=2a02:17d0:201:8b00:fc27:c46f:b9a4:a2d4
+ip ro rep default via $gw
+ip ro rep 2a02:17d0:201:8b00::2 via $gw metric 100 # fraggod.net
 EOF
+	chmod +x usr/local/bin/net
 
-	# Workaround for systemd-networkd not setting mtu for these ifaces at the right time
-	mkdir -p etc/systemd/system
-	cat >etc/systemd/system/bat-mtu.service <<'EOF'
+	cat >etc/systemd/system/net.service <<'EOF'
 [Unit]
 Wants=network.target
 After=network.target
 Before=network-online.target
 
-StartLimitBurst=4
-StartLimitIntervalSec=3min
-
 [Service]
-Type=exec
-
-# systemd-networkd fails to set MTU via .netdev/network units consistently
-# This script will try setting right mtu value whenever it tries to change
-# rl= is for simple rate-limiting to bail on conflicting MTU setters
-Environment=IF=bat0 MTU=1440
-ExecStartPre=/usr/lib/systemd/systemd-networkd-wait-online -qi ${IF}:off --timeout 30
-ExecStart=bash -c 'rl=0 rl_win=100 rl_max=20 rx=" mtu [0-9]+ "; \
-	while read ev; do [[ "$ev" =~ $rx ]] || continue; \
-		printf -v ts "%%(%%s)T" -1; ((ts-=ts%%rl_win)); ((rld=++rl-ts)); \
-		[[ $rld -gt $rl_max ]] && exit 59 || [[ $rld -lt 0 ]] && rl=ts; \
-		ip link set dev $IF mtu $MTU || break; \
-	done < <(ip -o link show dev $IF; exec stdbuf -oL ip -o monitor link dev $IF)'
-
-Restart=on-success
-RestartSec=8
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/net
 
 [Install]
 WantedBy=multi-user.target
 EOF
-	mkdir -p etc/systemd/system/multi-user.target.wants
-	ln -s /etc/systemd/system/bat-mtu.service etc/systemd/system/multi-user.target.wants/bat-mtu.service
-
+	ln -s /etc/systemd/system/net.service etc/systemd/system/multi-user.target.wants/net.service
 }
