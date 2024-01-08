@@ -1,47 +1,19 @@
 pkgname=can-base
-pkgver=5
-pkgrel=3
-pkgdesc="meta-package with base system for container machine."
+pkgver=6
+pkgrel=1
+pkgdesc="Meta-package with base system for an nspawn container."
 arch=(any)
+install=can-base.install
 
 depends=(
 	base
 
-	bash
-	coreutils
-	diffutils
-	file
-	findutils
-	gawk
-	grep
-	gzip
-	iproute2
-	iputils
 	less
+	nano
 	man-db
 	man-pages
-	nano
-	procps-ng
-	sed
-	sysfsutils
-	tar
-	texinfo
-	util-linux
-	libcap
-	libarchive
-	xz
-	zstd
-
-	nftables
-	batctl
-	wireguard-tools
+	diffutils
 )
-
-provides=()
-conflicts=()
-replaces=()
-
-install=can-base.install
 
 
 package() {
@@ -72,7 +44,6 @@ IPv6AcceptRA=no
 ## ip-ext ipv6-name -mbp 2a02:17d0:201:8b00::/64 can-name
 # Address=2a02:17d0:201:8b00::/64
 # Gateway=2a02:17d0:201:8b00:fc27:c46f:b9a4:a2d4
-DNS=fd02::1
 EOF
 	cat >etc/systemd/network/66-ve-host.network <<'EOF'
 [Match]
@@ -92,17 +63,26 @@ Wants=network.target
 After=network.target
 Before=network-online.target
 
-[Service]
-Type=oneshot
-TimeoutSec=10
+StartLimitBurst=4
+StartLimitIntervalSec=3min
 
-# systemd-networkd fails to set MTU via .netdev/network units
-# This script will try setting mtu value a couple times, exiting when done or on timeout
-ExecStart=bash -c 'iface=bat0; mtu=1440; err=1;\
-	trap "pkill -g0" EXIT; trap \'err=0; pkill -g0\' USR1; trap \'exit $err\' TERM;\
-	(grep -q " mtu $mtu " < <( ip link show dev $iface;\
-		stdbuf -oL ip -o monitor all dev $iface ) && pkill -USR1 -g0 || pkill -g0) &\
-	for n in 1 2 3 4; do read -rt 1 <> <(:); ip link set dev $iface mtu $mtu; done'
+[Service]
+Type=exec
+
+# systemd-networkd fails to set MTU via .netdev/network units consistently
+# This script will try setting right mtu value whenever it tries to change
+# rl= is for simple rate-limiting to bail on conflicting MTU setters
+Environment=IF=bat0 MTU=1440
+ExecStartPre=/usr/lib/systemd/systemd-networkd-wait-online -qi ${IF}:off --timeout 30
+ExecStart=bash -c 'rl=0 rl_win=100 rl_max=20 rx=" mtu [0-9]+ "; \
+	while read ev; do [[ "$ev" =~ $rx ]] || continue; \
+		printf -v ts "%%(%%s)T" -1; ((ts-=ts%%rl_win)); ((rld=++rl-ts)); \
+		[[ $rld -gt $rl_max ]] && exit 59 || [[ $rld -lt 0 ]] && rl=ts; \
+		ip link set dev $IF mtu $MTU || break; \
+	done < <(ip -o link show dev $IF; exec stdbuf -oL ip -o monitor link dev $IF)'
+
+Restart=on-success
+RestartSec=8
 
 [Install]
 WantedBy=multi-user.target

@@ -1,7 +1,7 @@
 pkgname=can-tools
-pkgver=4
+pkgver=5
 pkgrel=1
-pkgdesc="meta-package for more-than-basic container setup."
+pkgdesc="Meta-package for more-than-basic container setup."
 arch=(any)
 
 depends=(
@@ -12,7 +12,3 @@ depends=(
 	screen
 	zsh
 )
-
-provides=()
-conflicts=()
-replaces=()
