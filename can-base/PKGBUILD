@@ -1,6 +1,6 @@
 pkgname=can-base
 pkgver=6
-pkgrel=1
+pkgrel=2
 pkgdesc="Meta-package with base system for an nspawn container."
 arch=(any)
 install=can-base.install
@@ -30,7 +30,7 @@ package() {
 set -eEo pipefail
 trap 'echo >&2 "----- FAILURE at line $LINENO :: $BASH_COMMAND"' ERR
 
-ip link show bat0 &>/dev/null || ip link add bat0 type batadv
+ip -br link show bat0 &>/dev/null || ip link add bat0 type batadv
 ip link set bat0 mtu 1440
 ip link set host0 master bat0 up
 
@@ -39,8 +39,8 @@ ip link set host0 master bat0 up
 ip link set bat0 mtu 1440 up
 
 gw=2a02:17d0:201:8b00:fc27:c46f:b9a4:a2d4
-ip ro rep default via $gw
-ip ro rep 2a02:17d0:201:8b00::2 via $gw metric 100 # fraggod.net
+ip ro rep default via $gw dev bat0
+ip ro rep 2a02:17d0:201:8b00::2 via $gw dev bat0 metric 100 # fraggod.net
 EOF
 	chmod +x usr/local/bin/net
 

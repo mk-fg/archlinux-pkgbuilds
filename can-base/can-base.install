@@ -1,14 +1,10 @@
 post_install() {
-	systemctl enable systemd-networkd
-
-	# In case it might be enabled
-	systemctl disable systemd-resolved
-	rm -f /etc/resolv.conf{,.pacsave}
-
-	# To fix "login[29]: pam_securetty(login:auth): access denied: tty 'pts/0' is not secure !"
-	sed -i 's/^auth *required *pam_securetty\.so/#auth required pam_securetty.so/' /etc/pam.d/login
-	echo >>/etc/securetty
-	echo pts/0 >>/etc/securetty
+	# Networking is handled by local here script, not systemd daemons
+	systemctl disable systemd-networkd systemd-resolved
+	systemctl stop systemd-networkd systemd-resolved
+	rm -f /etc/resolv.conf{,.pacsave} # can be a broken resolvd symlink
+	echo 'nameserver 2a02:17d0:201:8b00:e7f7:90bc:6456:15b6' >/etc/resolv.conf
+	: >/etc/hosts # should not need anything default there
 
 	# Common site-local code mounted from host
 	mkdir /usr/src/modules
