@@ -1,6 +1,6 @@
 pkgname=can-base
 pkgver=6
-pkgrel=2
+pkgrel=3
 pkgdesc="Meta-package with base system for an nspawn container."
 arch=(any)
 install=can-base.install
@@ -38,9 +38,7 @@ ip link set host0 master bat0 up
 # ip addr rep 2a02:17d0:201:8b00:.../64 dev bat0
 ip link set bat0 mtu 1440 up
 
-gw=2a02:17d0:201:8b00:fc27:c46f:b9a4:a2d4
-ip ro rep default via $gw dev bat0
-ip ro rep 2a02:17d0:201:8b00::2 via $gw dev bat0 metric 100 # fraggod.net
+ip ro rep default via 2a02:17d0:201:8b00:fc27:c46f:b9a4:a2d4 dev bat0
 EOF
 	chmod +x usr/local/bin/net
 
