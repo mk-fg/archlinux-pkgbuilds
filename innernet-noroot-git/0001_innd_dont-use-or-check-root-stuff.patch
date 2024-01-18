@@ -1,0 +1,17 @@
+diff --git a/server/src/main.rs b/server/src/main.rs
+index aee0fd1..a1facd1 100644
+--- a/server/src/main.rs
++++ b/server/src/main.rs
+@@ -261,9 +261,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
+     pretty_env_logger::init();
+     let opts = Opts::parse();
+ 
+-    if unsafe { libc::getuid() } != 0 && !matches!(opts.command, Command::Completions { .. }) {
+-        return Err("innernet-server must run as root.".into());
+-    }
++    // if unsafe { libc::getuid() } != 0 && !matches!(opts.command, Command::Completions { .. }) {
++    //     return Err("innernet-server must run as root.".into());
++    // }
+ 
+     let conf = ServerConfig::new(opts.config_dir, opts.data_dir);
+ 

@@ -1,0 +1,50 @@
+pkgname=innernet-noroot-git
+pkgver=v1.6.0
+pkgrel=1
+pkgdesc="tonarino/innernet daemon with unnecessary uid=0 check removed."
+arch=(x86_64)
+url=https://github.com/tonarino/innernet
+license=(MIT)
+depends=(sqlite)
+makedepends=(git cargo)
+conflicts=(innernet innernet-git)
+source=($pkgname::git+$url)
+b2sums=(SKIP)
+
+_patches=( 0001_innd_dont-use-or-check-root-stuff.patch )
+for p in ${_patches[@]}; do source+=($p); b2sums+=(SKIP); done
+
+pkgver() {
+	cd "$pkgname"
+	local tag=$(git tag --sort=-v:refname | grep '^v[0-9]' | head -1)
+	local commits_since=$(git rev-list $tag..HEAD --count)
+	echo "$tag.r$commits_since.$(git log --pretty=format:'%h' -n 1)"
+}
+
+prepare() {
+	cd "$pkgname"
+	for p in ${_patches[@]}; do
+		patch --dry-run -tNp1 -R -i "$srcdir"/$p >/dev/null \
+			|| patch -tNp1 -i "$srcdir"/$p || { echo >&2 "ERROR: patch failed - $p"; exit 1; }
+	done
+}
+
+build() {
+	cd "$pkgname"
+	cargo build --release --locked
+}
+
+package() {
+	cd "$pkgname"
+
+	install -Dm755 "target/release/innernet" "$pkgdir/usr/bin/innernet"
+	install -Dm755 "target/release/innernet-server" "$pkgdir/usr/bin/innernet-server"
+
+	install -Dm644 "client/innernet@.service" "$pkgdir/usr/lib/systemd/system/innernet@.service"
+	install -Dm644 "server/innernet-server@.service" "$pkgdir/usr/lib/systemd/system/innernet-server@.service"
+
+	install -Dm644 "doc/innernet.8.gz" "$pkgdir/usr/share/man/man8/innernet.8.gz"
+	install -Dm644 "doc/innernet-server.8.gz" "$pkgdir/usr/share/man/man8/innernet-server.8.gz"
+
+	install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
