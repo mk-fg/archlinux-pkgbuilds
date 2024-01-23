@@ -1,7 +1,9 @@
+# Maintainer: Mike Kazantsev <mk.fraggod@gmail.com>
+
 pkgname=netatop-bpf-git
 pkgver=1
 pkgrel=1
-pkgdesc="Kernel and userspace components to allow atop tool to gather per-process network stats."
+pkgdesc="Userspace BPF loader/daemon to allow atop to gather per-process network stats."
 arch=(x86_64)
 url=https://github.com/bytedance/netatop-bpf
 license=(MIT)
@@ -11,21 +13,21 @@ source=($pkgname::git+$url)
 b2sums=(SKIP)
 
 pkgver() {
-	cd "$pkgname"
+	cd $pkgname
 	printf "%s.%s.$pkgrel" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 prepare() {
-	cd "$pkgname"
+	cd $pkgname
 	git submodule update --init --recursive
 }
 
 build() {
-	cd "$pkgname"
+	cd $pkgname
 	make
 }
 
 package() {
-	cd "$pkgname"
+	cd $pkgname
 	make SBINPATH=/usr/bin SYSDPATH=/usr/lib/systemd/system DESTDIR="$pkgdir" install
 }
