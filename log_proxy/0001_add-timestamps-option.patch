@@ -1,0 +1,186 @@
+From d4c7f257b24361a39f7750ca1803d95e33e06e4c Mon Sep 17 00:00:00 2001
+From: Mike Kazantsev <mk.fraggod@gmail.com>
+Date: Tue, 6 Feb 2024 01:53:01 +0500
+Subject: [PATCH] feat: add -T/--timestamps (env LOGPROXY_TIMESTAMPS) option to
+ prepend strftime to each line
+
+---
+ src/log_proxy.c         |  8 ++++----
+ src/log_proxy_wrapper.c |  2 +-
+ src/options.h           | 12 ++++++++++++
+ src/out.c               | 18 +++++++++++++++++-
+ src/out.h               |  2 +-
+ src/util.c              | 20 ++++++++++++++++++++
+ src/util.h              |  1 +
+ 7 files changed, 56 insertions(+), 7 deletions(-)
+
+diff --git a/src/log_proxy.c b/src/log_proxy.c
+index 5627384..8b84c9c 100644
+--- a/src/log_proxy.c
++++ b/src/log_proxy.c
+@@ -115,5 +115,5 @@ static void every_second() {
+             // => let's reinit the output channel
+             destroy_output_channel();
+-            init_output_channel(log_file, use_locks, TRUE, chmod_str, chown_str, chgrp_str);
++            init_output_channel(log_file, use_locks, TRUE, chmod_str, chown_str, chgrp_str, timestamp_prefix);
+             unlock_control_file(fd);
+             return;
+@@ -142,5 +142,5 @@ static void every_second() {
+             if (rotate_res == TRUE) {
+                 destroy_output_channel();
+-                init_output_channel(log_file, use_locks, TRUE, chmod_str, chown_str, chgrp_str);
++                init_output_channel(log_file, use_locks, TRUE, chmod_str, chown_str, chgrp_str, timestamp_prefix);
+             }
+         }
+@@ -203,5 +203,5 @@ void init_or_reinit_output_channel(const gchar *lg_file, gboolean us_locks) {
+     }
+     destroy_output_channel();
+-    init_output_channel(lg_file, us_locks, FALSE, chmod_str, chown_str, chgrp_str);
++    init_output_channel(lg_file, us_locks, FALSE, chmod_str, chown_str, chgrp_str, timestamp_prefix);
+     unlock_control_file(lock_fd);
+ }
+@@ -213,5 +213,5 @@ int main(int argc, char *argv[])
+     context = g_option_context_new("LOGFILE  - log proxy");
+     g_option_context_add_main_entries(context, entries, NULL);
+-    gchar *description = "Optional environment variables to override defaults: \n    LOGPROXY_ROTATION_SIZE\n    LOGPROXY_ROTATION_TIME\n    LOGPROXY_ROTATION_SUFFIX\n    LOGPROXY_LOG_DIRECTORY\n    LOGPROXY_ROTATED_FILES\n\nExample for rotation-size option:\n- If log_proxy is run with the option --rotation-size on the command line, rotation-size will take the provided value\n- If the option --rotation-size is not provided on command line :\n  - If the environment variable LOGPROXY_ROTATION_SIZE is set, rotation-size will take this value\n  - If the environment variable LOGPROXY_ROTATION_SIZE is not set, rotation-size will take the default value 104857600\n";
++    gchar *description = "Optional environment variables to override defaults: \n    LOGPROXY_ROTATION_SIZE\n    LOGPROXY_ROTATION_TIME\n    LOGPROXY_ROTATION_SUFFIX\n    LOGPROXY_LOG_DIRECTORY\n    LOGPROXY_ROTATED_FILES\n    LOGPROXY_TIMESTAMPS\n\nExample for rotation-size option:\n- If log_proxy is run with the option --rotation-size on the command line, rotation-size will take the provided value\n- If the option --rotation-size is not provided on command line :\n  - If the environment variable LOGPROXY_ROTATION_SIZE is set, rotation-size will take this value\n  - If the environment variable LOGPROXY_ROTATION_SIZE is not set, rotation-size will take the default value 104857600\n";
+     g_option_context_set_description(context, description);
+     if (!g_option_context_parse(context, &argc, &argv, NULL)) {
+diff --git a/src/log_proxy_wrapper.c b/src/log_proxy_wrapper.c
+index 396a04a..286086c 100644
+--- a/src/log_proxy_wrapper.c
++++ b/src/log_proxy_wrapper.c
+@@ -65,5 +65,5 @@ void spawn_logproxy_async(const gchar *fifo_path, const gchar *log_path) {
+         use_locks_str = "--use-locks";
+     }
+-    gchar *cli = g_strdup_printf("log_proxy -s %li -t %li -S \"%s\" -n %i %s -r -f \"%s\" \"%s\"", rotation_size, rotation_time, rotation_suffix, rotated_files, use_locks_str, fifo_path, log_path);
++    gchar *cli = g_strdup_printf("log_proxy -s %li -t %li -S \"%s\" -d \"%s\" -T \"%s\" -n %i %s -r -f \"%s\" \"%s\"", rotation_size, rotation_time, rotation_suffix, log_directory, timestamp_prefix, rotated_files, use_locks_str, fifo_path, log_path);
+     gboolean spawn_res = g_spawn_command_line_async(cli, NULL);
+     if (spawn_res == FALSE) {
+diff --git a/src/options.h b/src/options.h
+index b68fc26..f6b7465 100644
+--- a/src/options.h
++++ b/src/options.h
+@@ -11,4 +11,5 @@ static glong rotation_size = -1;
+ static glong rotation_time = -1;
+ static gchar *rotation_suffix = NULL;
++static gchar *timestamp_prefix = NULL;
+ static gchar *log_directory = NULL;
+ static gchar *chmod_str = NULL;
+@@ -71,4 +72,14 @@ void set_default_values_from_env()
+     }
+ 
++    if ( timestamp_prefix ==  NULL ) {
++        env_val = g_getenv("LOGPROXY_TIMESTAMPS");
++        if ( env_val != NULL ) {
++            timestamp_prefix = (gchar *)env_val;
++        }
++    }
++    if ( timestamp_prefix !=  NULL && strlen(timestamp_prefix) == 0 ) {
++        timestamp_prefix = NULL;
++    }
++
+     if ( log_directory ==  NULL ) {
+         env_val = g_getenv("LOGPROXY_LOG_DIRECTORY");
+@@ -95,4 +106,5 @@ static GOptionEntry entries[] = {
+     { "log-directory", 'd', 0, G_OPTION_ARG_STRING, &log_directory, "directory to store log files (default: content of environment variable LOGPROXY_LOG_DIRECTORY or current directory), directory is created if missing", NULL },
+     { "rotated-files", 'n', 0, G_OPTION_ARG_INT, &rotated_files, "maximum number of rotated files to keep including main one (0 => no cleaning, default: content of environment variable LOGPROXY_ROTATED_FILES or 5)", NULL },
++    { "timestamps", 'T', 0, G_OPTION_ARG_STRING, &timestamp_prefix, "strftime prefix to prepend to every output line (default: content of environment variable LOGPROXY_TIMESTAMPS or none)", NULL },
+     { "chmod", 'c', 0, G_OPTION_ARG_STRING, &chmod_str, "if set, chmod the logfile to this value, '0700' for example (default: content of environment variable LOGPROXY_CHMOD or NULL)", NULL },
+     { "chown", 'o', 0, G_OPTION_ARG_STRING, &chown_str, "if set, try (if you don't have sufficient privileges, it will fail silently) to change the owner of the logfile to the given user value", NULL },
+diff --git a/src/out.c b/src/out.c
+index afdbd14..d31e019 100644
+--- a/src/out.c
++++ b/src/out.c
+@@ -15,4 +15,5 @@ static gboolean _use_locks = FALSE;
+ static gchar *_log_file = NULL;
+ static glong _log_file_initial_timestamp = 0;
++static gchar *_timestamp_prefix = NULL;
+ 
+ glong get_output_channel_age() {
+@@ -30,6 +31,7 @@ void destroy_output_channel() {
+ }
+ 
+-void init_output_channel(const gchar *log_file, gboolean use_locks, gboolean force_control_file, const gchar *chmod_str, const gchar *chown_str, const gchar *chgrp_str) {
++void init_output_channel(const gchar *log_file, gboolean use_locks, gboolean force_control_file, const gchar *chmod_str, const gchar *chown_str, const gchar *chgrp_str, const gchar *timestamp_prefix) {
+     _log_file = g_strdup(log_file);
++    _timestamp_prefix = g_strdup(timestamp_prefix);
+     _use_locks = use_locks;
+     create_empty(_log_file);
+@@ -92,4 +94,5 @@ gboolean write_output_channel(GString *buffer) {
+     GError *error = NULL;
+     gsize written;
++    gsize written_timestamp = 0;
+     while (TRUE) {
+         if (_use_locks) {
+@@ -99,4 +102,17 @@ gboolean write_output_channel(GString *buffer) {
+             }
+         }
++
++        if ( _timestamp_prefix != NULL && written_timestamp == 0 ) {
++            gchar *timestamp = compute_timestamp_prefix(_timestamp_prefix);
++            if ( timestamp != NULL ) {
++                write_status = g_io_channel_write_chars(_out_channel, timestamp,
++                        strlen(timestamp), &written_timestamp, &error);
++                g_free(timestamp);
++                if (write_status == G_IO_STATUS_AGAIN) {
++                    continue;
++                }
++            }
++        }
++
+         write_status = g_io_channel_write_chars(_out_channel, buffer->str,
+                 buffer->len, &written, &error);
+diff --git a/src/out.h b/src/out.h
+index 0a803e8..242e70c 100644
+--- a/src/out.h
++++ b/src/out.h
+@@ -4,5 +4,5 @@
+ #include <glib.h>
+ 
+-void init_output_channel(const gchar *log_file, gboolean use_locks, gboolean force_control_file, const gchar *chmod_str, const gchar *chown_str, const gchar *chgrp_str);
++void init_output_channel(const gchar *log_file, gboolean use_locks, gboolean force_control_file, const gchar *chmod_str, const gchar *chown_str, const gchar *chgrp_str, const gchar *timestamp_prefix);
+ void destroy_output_channel();
+ gboolean write_output_channel(GString *buffer);
+diff --git a/src/util.c b/src/util.c
+index 0189441..da2cc4e 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -116,4 +116,24 @@ gchar *compute_strftime_suffix(const gchar *str, const gchar *strftime_suffix) {
+ }
+ 
++/**
++ * Format current timestamp prefix to prepend to a log line.
++ *
++ * @param strftime_prefix format with strftime placeholders to expand with current time.
++ * @return newly allocated string (free it with g_free) with the current timestamp prefix.
++ */
++gchar *compute_timestamp_prefix(const gchar *strftime_prefix) {
++    time_t t;
++    struct tm *tmp;
++    t = time(NULL);
++    tmp = localtime(&t);
++    g_assert(tmp != NULL);
++    char outstr[100];
++    if (strftime(outstr, sizeof(outstr), strftime_prefix, tmp) == 0) {
++        g_critical("problem with strftime on %s", strftime_prefix);
++        return NULL;
++    }
++    return g_strdup(outstr);
++}
++
+ /**
+  * Compute absolute file path from directory path and file name
+diff --git a/src/util.h b/src/util.h
+index 0310eb4..f961052 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -8,4 +8,5 @@ glong get_file_size(const gchar *file_path);
+ glong get_current_timestamp();
+ gchar *compute_strftime_suffix(const gchar *str, const gchar *strftime_suffix);
++gchar *compute_timestamp_prefix(const gchar *strftime_prefix);
+ gchar *get_unique_hexa_identifier();
+ glong get_file_inode(const gchar *file_path);
+-- 
+2.43.0
+
