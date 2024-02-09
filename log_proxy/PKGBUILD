@@ -1,24 +1,13 @@
 pkgname=log_proxy
-pkgver=0.5.2
-pkgrel=2
+pkgver=0.7.1
+pkgrel=1
 pkgdesc="Tiny C log rotation utility for apps that write their logs to stdout/stderr."
 arch=(x86_64)
 url=https://github.com/metwork-framework/log_proxy
 license=(BSD-3)
 depends=(glib2)
 source=($pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz)
-b2sums=(21df4bdee7745cb6f8c1fafcd6009d9b40fac1392522204d8c4705c00919352f98530053dfb99b24d5eb29f38b2e0854df72b7bd0d42d8c5d060efc43fa85ed2)
-
-_patches=( 0001_add-timestamps-option.patch )
-for p in ${_patches[@]}; do source+=($p); b2sums+=(SKIP); done
-
-prepare() {
-	cd $pkgname-$pkgver
-	for p in ${_patches[@]}; do
-		patch --dry-run -tNp1 -R -i "$srcdir"/$p >/dev/null \
-			|| patch -tNp1 -i "$srcdir"/$p || { echo >&2 "ERROR: patch failed - $p"; exit 1; }
-	done
-}
+b2sums=(86ca9ebd47cc15aadfb2cf0e36f2151bcde453498d7bfda10823e18722eecc8484730bc3c9b53cf35c7205e975b1e7719f21d3aafedaf24e3a5f30074091cbab)
 
 build() {
 	cd $pkgname-$pkgver
