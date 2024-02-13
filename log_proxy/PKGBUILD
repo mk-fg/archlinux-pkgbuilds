@@ -1,5 +1,5 @@
 pkgname=log_proxy
-pkgver=0.7.1
+pkgver=0.7.3
 pkgrel=1
 pkgdesc="Tiny C log rotation utility for apps that write their logs to stdout/stderr."
 arch=(x86_64)
@@ -7,7 +7,7 @@ url=https://github.com/metwork-framework/log_proxy
 license=(BSD-3)
 depends=(glib2)
 source=($pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz)
-b2sums=(86ca9ebd47cc15aadfb2cf0e36f2151bcde453498d7bfda10823e18722eecc8484730bc3c9b53cf35c7205e975b1e7719f21d3aafedaf24e3a5f30074091cbab)
+b2sums=(89a2f1ce9fa761d781fb684f1277aaa1a78a5268b1d5e5634d0712d4bfd7804b35e4ecab1ffe4f7fd63a775dd8cbb50991e2c96133f06b5a1721471c45d68eab)
 
 build() {
 	cd $pkgname-$pkgver
