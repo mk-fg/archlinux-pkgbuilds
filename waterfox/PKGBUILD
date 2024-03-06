@@ -4,7 +4,7 @@
 # This build requires large amount of RAM (30-40 gigs), using gcc with pgo+lto - https://bugs.gentoo.org/837122
 
 pkgname=waterfox
-pkgver=G6.0.7
+pkgver=G6.0.9
 _archivename=$pkgver
 
 pkgrel=1
@@ -57,7 +57,7 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop )
-b2sums=( 48a337f4fdab555d089e5bc2a0d1e3644ee0842846cc5b793294066c8b5ad59d2c207da13538fffb68dec737a6e3c9dcad5807ab8d1892dfca96b367c24b25ce SKIP )
+b2sums=( dc4129fef7cfeea8481aa9b3bdcc01796ddf3b066cd1b6ddf74efd50ef5bcbb4913b74b90bc7604ed11537d7a7b29db75054d919725faa4670a33ffdfa99f720 SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 
