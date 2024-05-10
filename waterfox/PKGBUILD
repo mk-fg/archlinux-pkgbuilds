@@ -4,7 +4,7 @@
 # This build requires large amount of RAM (30-40 gigs), using gcc with pgo+lto - https://bugs.gentoo.org/837122
 
 pkgname=waterfox
-pkgver=G6.0.9
+pkgver=G6.0.13
 _archivename=$pkgver
 
 pkgrel=1
@@ -38,7 +38,7 @@ makedepends=(
 	nasm
 	nodejs
 	python
-	rust
+	rust<1.77 # see firefox Bug-1882209
 	unzip
 	wasi-compiler-rt
 	wasi-libc
@@ -57,7 +57,7 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(
 	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
 	$pkgname.desktop )
-b2sums=( dc4129fef7cfeea8481aa9b3bdcc01796ddf3b066cd1b6ddf74efd50ef5bcbb4913b74b90bc7604ed11537d7a7b29db75054d919725faa4670a33ffdfa99f720 SKIP )
+b2sums=( 06760418c8536f7f73e0ffc9b34944e4beccf4ba83bbdc66c19522768e232cf4d9aadae61d310ef697c0159aeab562986a5be137a98d07f86c031f6fe170f111 SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 
@@ -173,6 +173,8 @@ build() {
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 END
+	# XXX: this will BREAK at distutils missing in virtualenv for modern python
+	# hacky fix: symlink _distutils dir from setuptools somewhere into venv's site-packages
 	./mach build
 	./mach package
 
