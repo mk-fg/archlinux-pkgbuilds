@@ -1,5 +1,5 @@
 pkgname=mpy-cross
-pkgver=1.22.2
+pkgver=1.23.0
 pkgrel=1
 pkgdesc="MicroPython cross compiler for .py scripts into .mpy files"
 arch=(any)
@@ -8,7 +8,7 @@ license=(MIT)
 depends=()
 makedepends=(python3)
 source=(https://github.com/micropython/micropython/releases/download/v${pkgver}/micropython-${pkgver}.tar.xz)
-b2sums=(779efc0129ce0348444520f341a2c5140b10e422931782589a3ad17156996e9ef4bbe3189cb408ca15f8ad07aa45de18abf7952de5de6853ec335714a319a88a)
+b2sums=(3fca138bbe9a676c671812625ac374e82c3c91bb41db32557747ea4d28941de92be80bbf2e642f9094427dbcf6ee285c63ddad66510287074edb716017599384)
 
 prepare() {
 	cd micropython-${pkgver}/mpy-cross
