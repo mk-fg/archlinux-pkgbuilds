@@ -1,14 +1,14 @@
 _p=conky
 
 pkgname=conky-git
-pkgver=v1.12.2.4.g8f5014b9
+pkgver=v1.21.2.11.gf88b50d2
 pkgrel=1
 pkgdesc='Lightweight system monitor for X'
 url='http://conky.sourceforge.net/'
 license=(BSD GPL)
 arch=(x86_64)
-makedepends=(cmake git)
-depends=(cairo curl glib2 imlib2 libical libpulse libxdamage libxft libxinerama libxml2 lua ncurses wireless_tools)
+makedepends=(cmake git gperf)
+depends=(cairo curl glib2 imlib2 libpulse libxdamage libxft libxinerama libxml2 lua ncurses wireless_tools)
 conflicts=(conky)
 provides=(conky)
 source=('git+https://github.com/brndnmtthws/conky#branch=main')
@@ -22,25 +22,25 @@ pkgver() {
 build() {
 	cd $_p
 
-	# ccmake .
+	# ccmake -B build .
 	# awk 'match($0,/^(BUILD_[^:]+):\S+(=\S+)/,a)
-	#  {sub(/^\/+\s*/, "    # ", prev_line); sub(/-MODIFIED$/,"",a[1]); print "-D", a[1] a[2] prev_line} {prev_line=$0}' CMakeCache.txt
+	#  {sub(/^\/+\s*/, "    # ", prev_line); sub(/-MODIFIED$/,"",a[1]); print "-D", a[1] a[2] prev_line} {prev_line=$0}' build/CMakeCache.txt
 	cmake_opts=(
 		-D BUILD_APCUPSD=OFF    # Enable APCUPSD support
 		-D BUILD_ARGB=ON    # Build ARGB (real transparency) support
 		-D BUILD_AUDACIOUS=OFF    # Build audacious (music player) support
-		-D BUILD_BMPX=OFF    # Build BMPx (music player) support
 		-D BUILD_BUILTIN_CONFIG=ON    # Enable builtin default configuration
 		-D BUILD_CMUS=OFF    # Enable support for cmus music player
+		-D BUILD_COLOUR_NAME_MAP=ON    # Include mappings of colour name -> RGB (i.e., red -> ff0000)
 		-D BUILD_CURL=ON    # Enable if you want Curl support
 		-D BUILD_DOCS=OFF    # Build documentation
-		-D BUILD_EVE=OFF    # Enable if you want Eve-Online skill monitoring support
+		-D BUILD_EXTRAS=OFF    # Build extras (includes syntax files for editors)
 		-D BUILD_HDDTEMP=OFF    # Support for hddtemp
-    -D BUILD_HSV_GRADIENT=ON    # Enable gradient in HSV colour space
+    -D BUILD_HSV_GRADIENT=ON    # No help, variable specified on the command line.
 		-D BUILD_HTTP=OFF    # Enable if you want HTTP support
 		-D BUILD_I18N=ON    # Enable if you want internationalization support
 		-D BUILD_IBM=OFF    # Support for IBM/Lenovo notebooks
-		-D BUILD_ICAL=ON    # Enable if you want iCalendar (RFC 5545) support
+		-D BUILD_ICAL=OFF    # Enable if you want iCalendar (RFC 5545) support
 		-D BUILD_ICONV=ON    # Enable iconv support
 		-D BUILD_IMLIB2=ON    # Enable Imlib2 support
     -D BUILD_INTEL_BACKLIGHT=OFF    # Enable support for Intel backlight
@@ -48,41 +48,47 @@ build() {
 		-D BUILD_IPV6=ON    # Enable if you want IPv6 support
 		-D BUILD_IRC=OFF    # Enable if you want IRC support
 		-D BUILD_JOURNAL=ON    # Enable support for reading from the systemd journal
-		-D BUILD_LUA_CAIRO=ON    # Build cairo bindings for Lua
+		-D BUILD_LUA_CAIRO=ON    # Build Cairo bindings for Lua
+		-D BUILD_LUA_CAIRO_XLIB=ON    # Build Cairo & Xlib interoperability for Lua
 		-D BUILD_LUA_IMLIB2=ON    # Build Imlib2 bindings for Lua
 		-D BUILD_LUA_RSVG=ON    # Build rsvg bindings for Lua
 		-D BUILD_MATH=ON    # Enable math support
 		-D BUILD_MOC=OFF    # Enable if you want MOC (music player) support
+		-D BUILD_MOUSE_EVENTS=ON    # Enable mouse event support
 		-D BUILD_MPD=OFF    # Enable if you want MPD (music player) support
 		-D BUILD_MYSQL=OFF    # Enable if you want MySQL support
 		-D BUILD_NCURSES=ON    # Enable ncurses support
-		-D BUILD_NVIDIA=OFF    # Enable nvidia support
+		-D BUILD_NVIDIA=OFF    # Enable Nvidia NvCtrl variables
 		-D BUILD_OLD_CONFIG=ON    # Enable support for the old syntax of configurations
 		-D BUILD_PORT_MONITORS=ON    # Build TCP portmon support
 		-D BUILD_PULSEAUDIO=ON    # Enable support for Pulseaudio's default sink and source
 		-D BUILD_RSS=ON    # Enable if you want RSS support
-		-D BUILD_WEATHER_METAR=OFF    # Enable METAR weather support
-		-D BUILD_WEATHER_XOAP=OFF    # Enable XOAP weather support
+		-D BUILD_TESTING=OFF    # Build the testing tree.
+		-D BUILD_WAYLAND=OFF    # Build Wayland support
 		-D BUILD_WLAN=ON    # Enable wireless support
 		-D BUILD_X11=ON    # Build X11 support
 		-D BUILD_XDAMAGE=ON    # Build Xdamage support
 		-D BUILD_XDBE=ON    # Build Xdbe (double-buffer) support
+		-D BUILD_XFIXES=ON    # Build Xfixes support
 		-D BUILD_XFT=ON    # Build Xft (freetype fonts) support
 		-D BUILD_XINERAMA=ON    # Build Xinerama support
+		-D BUILD_XINPUT=OFF    # Build Xinput 2 support (slow)
 		-D BUILD_XMMS2=OFF    # Enable if you want XMMS2 (music player) support
 		-D BUILD_XSHAPE=ON    # Enable Xshape support
 	)
 
 	cmake "${cmake_opts[@]}" \
-		-D MAINTAINER_MODE=ON \
 		-D CMAKE_INSTALL_PREFIX=/usr \
 		-D CMAKE_BUILD_TYPE=Release \
-		.
+		-B build \
+		-Wno-dev \
+		-S .
 
-	make
+	make -C build
 }
 
 package() {
 	cd $_p
-	make DESTDIR="$pkgdir" install
+	make -C build DESTDIR="$pkgdir" install
+	install -Dm644 COPYING "$pkgdir/usr/share/licenses/$_p/LICENSE"
 }
