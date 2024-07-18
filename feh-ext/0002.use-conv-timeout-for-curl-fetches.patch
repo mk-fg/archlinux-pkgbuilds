@@ -1,0 +1,14 @@
+diff --git a/src/imlib.c b/src/imlib.c
+index 072bf58..97eb299 100644
+--- a/src/imlib.c
++++ b/src/imlib.c
+@@ -898,7 +898,8 @@ static char *feh_http_load_image(char *url)
+ 			 * unusually high latencies, while at the same time avoiding
+ 			 * feh hanging indefinitely in unattended slideshows.
+ 			 */
+-			curl_easy_setopt(curl, CURLOPT_TIMEOUT, 1800);
++			curl_easy_setopt(curl, CURLOPT_TIMEOUT,
++				opt.conversion_timeout >= 0 ? opt.conversion_timeout : 1800);
+ 			curl_easy_setopt(curl, CURLOPT_URL, url);
+ 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, sfp);
+ 			ebuff = emalloc(CURL_ERROR_SIZE);

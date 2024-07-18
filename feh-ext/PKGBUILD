@@ -2,7 +2,7 @@ _p=feh
 
 pkgname=$_p-ext
 pkgver=3.10
-pkgrel=1
+pkgrel=2
 pkgdesc='Patched version of "feh" image viewer with extra functionality'
 url='https://feh.finalrewind.org/'
 license=(MIT)
