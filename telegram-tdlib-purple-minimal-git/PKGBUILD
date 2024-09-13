@@ -13,8 +13,9 @@ conflicts=(telegram-tdlib-purple)
 provides=(telegram-tdlib-purple="${pkgver}")
 source=(
 	"$pkgname"::git+"$url"
-	td::git+https://github.com/tdlib/td.git )
-sha256sums=( SKIP SKIP )
+	td::git+https://github.com/tdlib/td.git
+	0001.dont-drop-calls-for-other-apps.patch )
+b2sums=( SKIP SKIP SKIP )
 
 pkgver() {
 	cd $pkgname
@@ -28,6 +29,12 @@ prepare() {
 	git submodule init
 	git config submodule.td.url "$srcdir/td"
 	git -c protocol.file.allow=always submodule update
+
+	# Disables dropping incoming voice calls with "calls are not supported"
+	# So that those can be potentially picked-up on another device, like a phone
+	p=0001.dont-drop-calls-for-other-apps.patch
+	patch --dry-run -tNp1 -i "$srcdir"/$p && patch -tNp1 -i "$srcdir"/$p \
+		|| { echo >&2 "ERROR: patch failed - $p"; exit 1; }
 }
 
 build() {
