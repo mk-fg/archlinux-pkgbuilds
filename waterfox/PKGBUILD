@@ -1,27 +1,51 @@
 ## Based on the Waterfox from AUR by random-nick, which is in turn based on official firefox package in the repos.
-# Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91, G5.0 = 102, G6.0 = 115
-# Source repo: https://github.com/WaterfoxCo/Waterfox
+# Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91, G5.0 = 102, G6.0 = 115, G6.5 = 128
+# Source repo: https://github.com/BrowserWorks/Waterfox
 # This build requires large amount of RAM (30-40 gigs), using gcc with pgo+lto - https://bugs.gentoo.org/837122
 
 pkgname=waterfox
-pkgver=G6.0.13
+pkgver=6.5.0
+
 _archivename=$pkgver
+_src=Waterfox-$_archivename.tar.gz::https://github.com/BrowserWorks/Waterfox/archive/$_archivename.tar.gz
+_dir=Waterfox-$_archivename
+
+## Example to test-build specific commit
+# _archivename=6.5.0-beta-X
+# _src=Waterfox-$_archivename-<hash-short>.tar.gz::https://github.com/BrowserWorks/Waterfox/archive/<hash>.tar.gz
+# _dir=Waterfox-<hash>
 
 pkgrel=1
-pkgdesc="Fork of Mozilla Firefox featuring some legacy extensions, removed telemetry and no Pocket integration, current branch."
+pkgdesc='Fork of Mozilla Firefox featuring some legacy extensions, removed telemetry and no Pocket integration, current branch.'
 arch=(x86_64)
-license=(MPL GPL LGPL)
-url="https://www.waterfox.net/"
+license=(MPL-2.0)
+url='https://www.waterfox.net/'
 
 depends=(
-	dbus-glib
+	cairo
+	dbus
 	ffmpeg
+	fontconfig
+	freetype2
+	gcc-libs
+	gdk-pixbuf2
+	glib2
+	glibc
 	gtk3
 	libpulse
+	libx11
+	libxcb
+	libxcomposite
+	libxdamage
+	libxext
+	libxfixes
+	libxrandr
 	libxss
 	libxt
 	mime-types
+	nspr
 	nss
+	pango
 	ttf-font
 )
 
@@ -29,7 +53,6 @@ makedepends=(
 	cbindgen
 	clang
 	diffutils
-	dump_syms
 	imake
 	inetutils
 	lld
@@ -38,7 +61,7 @@ makedepends=(
 	nasm
 	nodejs
 	python
-	rust<1.77 # see firefox Bug-1882209
+	rust
 	unzip
 	wasi-compiler-rt
 	wasi-libc
@@ -54,10 +77,8 @@ optdepends=(
 	'speech-dispatcher: Text-to-Speech'
 	'hunspell-en_US: Spell checking, American English')
 options=(!emptydirs !makeflags !strip !lto !debug)
-source=(
-	Waterfox-$_archivename.tar.gz::https://github.com/WaterfoxCo/Waterfox/archive/$_archivename.tar.gz
-	$pkgname.desktop )
-b2sums=( 06760418c8536f7f73e0ffc9b34944e4beccf4ba83bbdc66c19522768e232cf4d9aadae61d310ef697c0159aeab562986a5be137a98d07f86c031f6fe170f111 SKIP )
+source=( $_src $pkgname.desktop )
+b2sums=( 22712ae7da68566a790ebd708b03576c6c23e6a230166c69172b973f5ded7ae6b3e718a0d37c61958b3e449373880370c1a040d0a4ee41a6776351643021b57d SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 
@@ -74,13 +95,13 @@ gen_mozconfig() {
 	cat >../mozconfig <<END
 ### From .mozconfig-x86_64-pc-linux-gnu in Waterfox repo, modified
 
-# ac_add_options --enable-lto -- enabled below
+# ac_add_options --enable-lto=full -- enabled below
 ac_add_options --enable-optimize="-O2 -w"
 ac_add_options --enable-release
 ac_add_options --enable-rust-simd
 export RUSTC_OPT_LEVEL=2
 export MOZILLA_OFFICIAL=1
-# export RUSTFLAGS="$RUSTFLAGS -Ctarget-cpu=core2"
+export RUSTFLAGS="$RUSTFLAGS -Ctarget-cpu=x86-64"
 
 ac_add_options --disable-crashreporter
 ac_add_options --disable-debug
@@ -115,6 +136,11 @@ export MOZ_TELEMETRY_REPORTING=
 
 ### Local tweaks
 
+# Required to avoid "regenerating build backend" picking FasterMakeBackend, which fails with:
+#   No rule to make target 'backend.FasterMakeBackend', needed by 'pre-export'.  Stop.
+# Forgot to check why backend is regenerated though, so might be also fixable elsewhere.
+ac_add_options --build-backends=RecursiveMake
+
 ac_add_options --enable-pulseaudio
 ac_add_options --disable-alsa
 ac_add_options --disable-jack
@@ -137,7 +163,7 @@ END
 
 prepare() {
 	mkdir -p mozbuild
-	cd Waterfox-$_archivename
+	cd $_dir
 
 	local p
 	for p in ${local_patches[@]}; do
@@ -146,15 +172,21 @@ prepare() {
 			|| { echo >&2 "ERROR: patch failed - $p"; exit 1; }
 	done
 
+	# Might also be fixable by pointing --with-l10n-base there,
+	#   but this way mozconfig above matches upstream ones better.
+	cp -a browser/locales/* waterfox/browser/locales/
+
 	gen_mozconfig
 }
 
 build() {
-	cd Waterfox-$_archivename
+	cd $_dir
 
-	export MOZ_NOSPAM=1
-	export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
 	export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+	export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
+	export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
+	# export MOZ_ENABLE_FULL_SYMBOLS=1 - for debug build only
+	export MOZ_NOSPAM=1
 
 	# malloc_usable_size is used in various parts of the codebase
 	CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
@@ -173,14 +205,19 @@ build() {
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 END
-	# XXX: this will BREAK at distutils missing in virtualenv for modern python
-	# hacky fix: symlink _distutils dir from setuptools somewhere into venv's site-packages
-	./mach build
+	./mach build --priority normal
 	./mach package
 
 	echo; echo "----- Profiling instrumented browser -----"; echo
-	LLVM_PROFDATA=llvm-profdata \
-		JARLOG_FILE="$PWD/jarlog" \
+	LLVM_PROFDATA=llvm-profdata JARLOG_FILE="$PWD/jarlog" \
+		MOZ_DISABLE_CONTENT_SANDBOX=1 \
+		MOZ_DISABLE_GMP_SANDBOX=1 \
+		MOZ_DISABLE_GPU_SANDBOX=1 \
+		MOZ_DISABLE_RDD_SANDBOX=1 \
+		MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
+		MOZ_DISABLE_UTILITY_SANDBOX=1 \
+		MOZ_DISABLE_VR_SANDBOX=1 \
+		GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
 		xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
 		./mach python build/pgo/profileserver.py
 
@@ -190,7 +227,7 @@ END
 	stat -c "Profile jarlog found (%s bytes)" jarlog
 
 	echo; echo "----- Removing instrumented browser -----"; echo
-	./mach clobber
+	./mach clobber objdir
 
 	echo; echo "----- Building optimized browser -----"; echo
 	cat >.mozconfig ../mozconfig - <<END
@@ -211,7 +248,7 @@ END
 }
 
 package() {
-	cd Waterfox-$_archivename
+	cd $_dir
 	echo; echo "----- Packaging -----"; echo
 	DESTDIR="$pkgdir" ./mach install
 
