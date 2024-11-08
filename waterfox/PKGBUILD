@@ -15,6 +15,16 @@ _dir=Waterfox-$_archivename
 # _src=Waterfox-$_archivename-<hash-short>.tar.gz::https://github.com/BrowserWorks/Waterfox/archive/<hash>.tar.gz
 # _dir=Waterfox-<hash>
 
+_src_l10n_hash=412bf181951e6dcb3df52569291b35a8a516c207 # make sure to update with pkgver above
+_src_l10n=Waterfox-l10n-$_archivename.tar.gz::https://github.com/BrowserWorks/l10n/archive/$_src_l10n_hash.tar.gz
+_src_submods=( l10n-$_src_l10n_hash:waterfox/browser/locales )
+
+source=( $_src $_src_l10n $pkgname.desktop )
+b2sums=(
+	22712ae7da68566a790ebd708b03576c6c23e6a230166c69172b973f5ded7ae6b3e718a0d37c61958b3e449373880370c1a040d0a4ee41a6776351643021b57d
+	9d8992a692902221be3afe26e081d6fd305aeedeebc30a5ae8d318f20cdde0c48481bf281716db4ac056bebbb05e1ab8195e9bc5162bdd4e2396ce6e3fb300cf
+	SKIP )
+
 pkgrel=1
 pkgdesc='Fork of Mozilla Firefox featuring some legacy extensions, removed telemetry and no Pocket integration, current branch.'
 arch=(x86_64)
@@ -77,8 +87,6 @@ optdepends=(
 	'speech-dispatcher: Text-to-Speech'
 	'hunspell-en_US: Spell checking, American English')
 options=(!emptydirs !makeflags !strip !lto !debug)
-source=( $_src $pkgname.desktop )
-b2sums=( 22712ae7da68566a790ebd708b03576c6c23e6a230166c69172b973f5ded7ae6b3e718a0d37c61958b3e449373880370c1a040d0a4ee41a6776351643021b57d SKIP )
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
 
@@ -141,6 +149,9 @@ export MOZ_TELEMETRY_REPORTING=
 # Forgot to check why backend is regenerated though, so might be also fixable elsewhere.
 ac_add_options --build-backends=RecursiveMake
 
+# LTO can eat a lot of memory, so try to avoid eating it in parallel at least
+mk_add_options MOZ_MAKE_FLAGS=-j1
+
 ac_add_options --enable-pulseaudio
 ac_add_options --disable-alsa
 ac_add_options --disable-jack
@@ -148,7 +159,6 @@ ac_add_options --disable-jack
 ac_add_options --disable-jprof
 ac_add_options --disable-updater
 
-mk_add_options MOZ_MAKE_FLAGS=-j8
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
 ac_add_options --with-system-nspr
@@ -165,18 +175,25 @@ prepare() {
 	mkdir -p mozbuild
 	cd $_dir
 
+	local p dir_src dir_dst
+	for p in "${_src_submods[@]}"; do
+		dir_src=${p%%:*} dir_dst=${p#*:}
+		cp -a "$srcdir"/$dir_src/. $dir_dst/
+	done
+
 	local p
 	for p in ${local_patches[@]}; do
 		echo "--- applying local patch: $p"
 		patch --dry-run -tNp1 -i "$srcdir"/$p && patch -tNp1 -i "$srcdir"/$p \
-			|| { echo >&2 "ERROR: patch failed - $p"; exit 1; }
+			|| { echo >&2 "ERROR: Patch failed - $p"; exit 1; }
 	done
 
-	# Might also be fixable by pointing --with-l10n-base there,
-	#   but this way mozconfig above matches upstream ones better.
-	cp -a browser/locales/* waterfox/browser/locales/
-
 	gen_mozconfig
+
+	# Submodules are fetched as empty dirs in github archive, so check for changes
+	grep -oP '(?<=url = ).*' .gitmodules |
+		b2sum --strict --quiet -c <((echo '37ac5b50  -')) || {
+			echo >&2 "ERROR: List of submodule URLs changed - add/update sources"; exit 1; }
 }
 
 build() {
@@ -191,13 +208,15 @@ build() {
 	# malloc_usable_size is used in various parts of the codebase
 	CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
 	CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
-
-	# LTO needs more open files
-	ulimit -n 4096
-
+	# -fexceptions breaks 128+ builds - https://bugzilla.mozilla.org/show_bug.cgi?id=1907251
+	CFLAGS="${CFLAGS/-fexceptions/}"
+	CXXFLAGS="${CXXFLAGS/-fexceptions/}"
 	# suppress warnings
 	CFLAGS+=" -w"
 	CXXFLAGS+=" -w"
+
+	# LTO needs more open files
+	ulimit -n 4096
 
 	if [[ -z $_disable_pgo ]]; then
 	# Do 3-tier PGO
