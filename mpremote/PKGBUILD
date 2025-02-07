@@ -1,0 +1,16 @@
+pkgname=mpremote
+pkgver=1.24.1
+pkgrel=1
+pkgdesc='CLI tool to remotely interact with, manage the filesystem on, and automate a MicroPython device over a serial connection.'
+arch=(x86_64)
+url=https://docs.micropython.org/en/latest/reference/mpremote.html
+license=(MIT)
+groups=()
+depends=(python-pyserial)
+makedepends=(python-installer)
+source=(https://files.pythonhosted.org/packages/ee/08/39e3cf836602825eefa53127e7b8d3a64cded8d3f639f9c67d823583e029/$pkgname-$pkgver-py3-none-any.whl)
+b2sums=(8048f2ac4beeb4f1eb528d8c9c5649849827acc0444cdc815cb131bef9ee4ffc394d55b4e8c1e8c5c74b23c1d569a0cfd83c3e3b9ac280bf40b3070c36418d8c)
+
+package() {
+	python -m installer --destdir="$pkgdir" $pkgname-$pkgver-py3-none-any.whl
+}
