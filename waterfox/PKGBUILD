@@ -4,7 +4,7 @@
 # This build requires large amount of RAM (30-40 gigs), using gcc with pgo+lto - https://bugs.gentoo.org/837122
 
 pkgname=waterfox
-pkgver=6.5.4
+pkgver=6.5.5
 
 _archivename=$pkgver
 _src=Waterfox-$_archivename.tar.gz::https://github.com/BrowserWorks/Waterfox/archive/$_archivename.tar.gz
@@ -21,7 +21,7 @@ _src_submods=( l10n-$_src_l10n_hash:waterfox/browser/locales )
 
 source=( $_src $_src_l10n $pkgname.desktop )
 b2sums=(
-	9d0a90d0c86f73d7dc2884d6b6d21bb82859f9c950be69d002dba9418c29609e447b23e94acb7ced7fbec5cd5ec4b17467e720750b1219b15889dc13b85dbd21
+	c3c9f6d24b48816c10ecda64cbea0ba58c2d36b95eb1ca9c949697a64c0f82b18740b7a6d37921e5074bc1299356b87e7100d7567d03e3879e439760c5b20da2
 	7b36ba58a34a9af4d77081889a09ef5b8a5dd47f6144c1f0f5941282877594f33d4e284ce590d4b6e9f77a9c9d28822489de664ce85eb90f0bf5f2ec13620012
 	SKIP )
 
