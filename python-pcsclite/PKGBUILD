@@ -1,0 +1,17 @@
+pkgname=python-pcsclite
+pkgver=0.18
+pkgrel=1
+pkgdesc='Python module wrapper for libpcsclite low-level C API.'
+arch=(x86_64)
+url="http://python-pcsclite.sourceforge.net/"
+license=(AGPL-3)
+groups=()
+depends=(python)
+makedepends=(python-setuptools)
+source=("https://sourceforge.net/projects/python-pcsclite/files/python-pcsclite-$pkgver-1/python-pcsclite-$pkgver.tar.gz")
+b2sums=(16ce899eef2d552fa3c1b5f72bbd451ed0418b408e9f4a0f094a4ec1f985f254789931c0cb0f3811ad4c9a9754791aa3db42c2f0da80fabdb99ccc6dab82ddaa)
+
+package() {
+	cd $pkgname-$pkgver/src
+	python setup.py install --prefix=/usr --root="${pkgdir}/" --optimize=1
+}
