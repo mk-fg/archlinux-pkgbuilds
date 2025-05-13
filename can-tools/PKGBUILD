@@ -1,5 +1,5 @@
 pkgname=can-tools
-pkgver=5
+pkgver=6
 pkgrel=1
 pkgdesc="Meta-package for more-than-basic container setup."
 arch=(any)
@@ -9,6 +9,6 @@ depends=(
 
 	atop
 	rsync
-	screen
+	tmux
 	zsh
 )
