@@ -31,7 +31,7 @@ build() {
 		-D BUILD_AUDACIOUS=OFF    # Build audacious (music player) support
 		-D BUILD_BUILTIN_CONFIG=ON    # Enable builtin default configuration
 		-D BUILD_CMUS=OFF    # Enable support for cmus music player
-		-D BUILD_COLOUR_NAME_MAP=ON    # Include mappings of colour name -> RGB (i.e., red -> ff0000)
+		-D BUILD_COLOUR_NAME_MAP=ON    # Include mappings of colour name -> RGB (e.g. red -> ff0000)
 		-D BUILD_CURL=ON    # Enable if you want Curl support
 		-D BUILD_DOCS=OFF    # Build documentation
 		-D BUILD_EXTRAS=OFF    # Build extras (includes syntax files for editors)
@@ -60,10 +60,11 @@ build() {
 		-D BUILD_NCURSES=ON    # Enable ncurses support
 		-D BUILD_NVIDIA=OFF    # Enable Nvidia NvCtrl variables
 		-D BUILD_OLD_CONFIG=ON    # Enable support for the old syntax of configurations
+		-D BUILD_OPENSOUNDSYS=OFF    # Build with Open Sound System support
 		-D BUILD_PORT_MONITORS=ON    # Build TCP portmon support
 		-D BUILD_PULSEAUDIO=ON    # Enable support for Pulseaudio's default sink and source
 		-D BUILD_RSS=ON    # Enable if you want RSS support
-		-D BUILD_TESTING=OFF    # Build the testing tree.
+		-D BUILD_TESTING=OFF    # Build test binary
 		-D BUILD_WAYLAND=OFF    # Build Wayland support
 		-D BUILD_WLAN=ON    # Enable wireless support
 		-D BUILD_X11=ON    # Build X11 support
