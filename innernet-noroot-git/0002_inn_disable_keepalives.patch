@@ -1,0 +1,25 @@
+diff --git a/shared/src/lib.rs b/shared/src/lib.rs
+index f13fe64..ed81479 100644
+--- a/shared/src/lib.rs
++++ b/shared/src/lib.rs
+@@ -19,7 +19,7 @@ pub mod wg;
+ pub use types::*;
+ 
+ pub const REDEEM_TRANSITION_WAIT: Duration = Duration::from_secs(5);
+-pub const PERSISTENT_KEEPALIVE_INTERVAL_SECS: u16 = 25;
++pub const PERSISTENT_KEEPALIVE_INTERVAL_SECS: u16 = 0;
+ pub const INNERNET_PUBKEY_HEADER: &str = "X-Innernet-Server-Key";
+ 
+ pub fn ensure_dirs_exist(dirs: &[&Path]) -> Result<(), WrappedIoError> {
+diff --git a/shared/src/wg.rs b/shared/src/wg.rs
+index 8429719..5a4abde 100644
+--- a/shared/src/wg.rs
++++ b/shared/src/wg.rs
+@@ -89,7 +89,6 @@ pub fn up(
+             })?,
+         )
+         .add_allowed_ip(address, prefix)
+-        .set_persistent_keepalive_interval(25)
+         .set_endpoint(endpoint);
+         device = device.add_peer(peer_config);
+     }

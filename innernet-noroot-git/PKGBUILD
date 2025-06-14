@@ -1,7 +1,7 @@
 pkgname=innernet-noroot-git
-pkgver=v1.6.0
+pkgver=v1.6.1
 pkgrel=1
-pkgdesc="tonarino/innernet daemon with unnecessary uid=0 check removed."
+pkgdesc="tonarino/innernet daemon with unnecessary uid=0 check removed, and other local tweaks."
 arch=(x86_64)
 url=https://github.com/tonarino/innernet
 license=(MIT)
@@ -11,7 +11,9 @@ conflicts=(innernet innernet-git)
 source=($pkgname::git+$url)
 b2sums=(SKIP)
 
-_patches=( 0001_innd_dont-use-or-check-root-stuff.patch )
+_patches=(
+	0001_innd_dont-use-or-check-root-stuff.patch
+	0002_inn_disable_keepalives.patch )
 for p in ${_patches[@]}; do source+=($p); b2sums+=(SKIP); done
 
 pkgver() {
