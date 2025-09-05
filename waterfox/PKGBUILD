@@ -1,10 +1,10 @@
 ## Based on the Waterfox from AUR by random-nick, which is in turn based on official firefox package in the repos.
-# Waterfox Current tracks Firefox ESR releases: G3.2 = 78, G4.0 = 91, G5.0 = 102, G6.0 = 115, G6.5 = 128
+# Waterfox Current tracks Firefox ESR releases: G5.0 = 102, G6.0 = 115, G6.5 = 128, G6.6 = 140
 # Source repo: https://github.com/BrowserWorks/Waterfox
 # This build requires large amount of RAM (30-40 gigs), using gcc with pgo+lto - https://bugs.gentoo.org/837122
 
 pkgname=waterfox
-pkgver=6.5.10
+pkgver=6.6.2
 
 _archivename=$pkgver
 _src=Waterfox-$_archivename.tar.gz::https://github.com/BrowserWorks/Waterfox/archive/$_archivename.tar.gz
@@ -15,14 +15,14 @@ _dir=Waterfox-$_archivename
 # _src=Waterfox-$_archivename-<hash-short>.tar.gz::https://github.com/BrowserWorks/Waterfox/archive/<hash>.tar.gz
 # _dir=Waterfox-<hash>
 
-_src_l10n_hash=3046738340d44e4ac76d29f96abc06a4ae71c1ad # make sure to update with pkgver above
+_src_l10n_hash=394dfec942093c103954a63eeed2549453837963 # make sure to update with pkgver above
 _src_l10n=Waterfox-l10n-$_archivename.tar.gz::https://github.com/BrowserWorks/l10n/archive/$_src_l10n_hash.tar.gz
 _src_submods=( l10n-$_src_l10n_hash:waterfox/browser/locales )
 
 source=( $_src $_src_l10n $pkgname.desktop )
 b2sums=(
-	296b832420546ea776eb204cd6ded009fd32e959c9f78116e752b4245b58c9a8884a09ec1e80609cf33eb9e22399014648a34eb3fe58df80dc6f07bc125c1fa6
-	7b36ba58a34a9af4d77081889a09ef5b8a5dd47f6144c1f0f5941282877594f33d4e284ce590d4b6e9f77a9c9d28822489de664ce85eb90f0bf5f2ec13620012
+	1eb5b323dbf8250e97c2657a1a3256e17ba790d2af49617e465fad537645da1b7f488ba9cc86f4a2c0384ae0999fdaf903c0d6f4c73053ecd2474d75c3fe7e6e
+	d0d83f8b7f7b8fa609787dfa5ed8008a6d53144464b30c1f690829a35e9a343cde5fd12e2d0b4f658fd8e95ba1e684d2bda71de1f69642c9604818338f648047
 	SKIP )
 
 pkgrel=1
@@ -64,7 +64,6 @@ makedepends=(
 	clang
 	diffutils
 	imake
-	inetutils
 	lld
 	llvm
 	mesa
@@ -104,7 +103,7 @@ gen_mozconfig() {
 ### From .mozconfig-x86_64-pc-linux-gnu in Waterfox repo, modified
 
 # ac_add_options --enable-lto=full -- enabled below
-ac_add_options --enable-optimize="-O2 -w"
+ac_add_options --enable-optimize="-march=x86-64 -O2 -w"
 ac_add_options --enable-release
 ac_add_options --enable-rust-simd
 export RUSTC_OPT_LEVEL=2
@@ -120,6 +119,7 @@ ac_add_options --disable-tests
 
 # ac_add_options --enable-alsa -- selected below
 ac_add_options --enable-application=browser
+ac_add_options --enable-bootstrap=-clang,-sccache
 ac_add_options --enable-install-strip
 ac_add_options --enable-jxl
 ac_add_options --enable-linker=lld
@@ -156,7 +156,6 @@ ac_add_options --enable-pulseaudio
 ac_add_options --disable-alsa
 ac_add_options --disable-jack
 
-ac_add_options --disable-jprof
 ac_add_options --disable-updater
 
 ac_add_options --prefix=/usr
@@ -231,15 +230,8 @@ END
 	./mach package
 
 	echo; echo "----- Profiling instrumented browser -----"; echo
-	LLVM_PROFDATA=llvm-profdata JARLOG_FILE="$PWD/jarlog" \
-		MOZ_DISABLE_CONTENT_SANDBOX=1 \
-		MOZ_DISABLE_GMP_SANDBOX=1 \
-		MOZ_DISABLE_GPU_SANDBOX=1 \
-		MOZ_DISABLE_RDD_SANDBOX=1 \
-		MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
-		MOZ_DISABLE_UTILITY_SANDBOX=1 \
-		MOZ_DISABLE_VR_SANDBOX=1 \
-		GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
+	LLVM_PROFDATA=llvm-profdata \
+		JARLOG_FILE="$PWD/jarlog" dbus-run-session \
 		xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
 		./mach python build/pgo/profileserver.py
 
