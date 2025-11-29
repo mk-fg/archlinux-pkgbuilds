@@ -25,7 +25,7 @@ b2sums=(
 	d0d83f8b7f7b8fa609787dfa5ed8008a6d53144464b30c1f690829a35e9a343cde5fd12e2d0b4f658fd8e95ba1e684d2bda71de1f69642c9604818338f648047
 	SKIP )
 
-pkgrel=1
+pkgrel=2
 pkgdesc='Fork of Mozilla Firefox featuring some legacy extensions, removed telemetry and no Pocket integration, current branch.'
 arch=(x86_64)
 license=(MPL-2.0)
