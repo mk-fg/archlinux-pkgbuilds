@@ -4,7 +4,7 @@
 # This build requires large amount of RAM (30-40 gigs), using gcc with pgo+lto - https://bugs.gentoo.org/837122
 
 pkgname=waterfox
-pkgver=6.6.5
+pkgver=6.6.7
 
 _archivename=$pkgver
 _src=Waterfox-$_archivename.tar.gz::https://github.com/BrowserWorks/Waterfox/archive/$_archivename.tar.gz
@@ -15,17 +15,17 @@ _dir=Waterfox-$_archivename
 # _src=Waterfox-$_archivename-<hash-short>.tar.gz::https://github.com/BrowserWorks/Waterfox/archive/<hash>.tar.gz
 # _dir=Waterfox-<hash>
 
-_src_l10n_hash=394dfec942093c103954a63eeed2549453837963 # make sure to update with pkgver above
+_src_l10n_hash=bce7b1e821ff7f65d914d35f09eee0379f41887d # make sure to update with pkgver above
 _src_l10n=Waterfox-l10n-$_archivename.tar.gz::https://github.com/BrowserWorks/l10n/archive/$_src_l10n_hash.tar.gz
 _src_submods=( l10n-$_src_l10n_hash:waterfox/browser/locales )
 
 source=( $_src $_src_l10n $pkgname.desktop )
 b2sums=(
-	f07db71b134d3726a0e6d6437fa486eff27e380cce64cb026166d47e129a5278288dff6b06a10baa054919c7e2aa8061d2fdbac113ca555028b2b7c81499eaed
-	d0d83f8b7f7b8fa609787dfa5ed8008a6d53144464b30c1f690829a35e9a343cde5fd12e2d0b4f658fd8e95ba1e684d2bda71de1f69642c9604818338f648047
+	afd32766bb5bdcb7603f2fa78648fe3f69348148d5973227c82d707ecf82a8f2f245c33e8933b93e481ed83bd8e13e78ed504e50b8f0258b9a2528f83c5466d8
+	99f15b311bc312b6748b3efd441b5c1685a45ae3f7387b8f51c3cbd8eae8f23389397ce3459b7d00e793454ee0d5705440ce7917e1333ce7546f7347f1aaec8c
 	SKIP )
 
-pkgrel=2
+pkgrel=1
 pkgdesc='Fork of Mozilla Firefox featuring some legacy extensions, removed telemetry and no Pocket integration, current branch.'
 arch=(x86_64)
 license=(MPL-2.0)
@@ -220,38 +220,44 @@ build() {
 	# LTO needs more open files
 	ulimit -n 4096
 
-	if [[ -z $_disable_pgo ]]; then
-	# Do 3-tier PGO
-	echo; echo "----- Building instrumented browser -----"; echo
-	cat >.mozconfig ../mozconfig - <<END
+	if [[ -z $_disable_pgo ]]; then # ----- 3-step PGO build
+
+	if [[ ! -s merged.profdata && ! -s jarlog ]]; then
+		echo; echo "----- Building instrumented browser -----"; echo
+		cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 END
-	./mach build --priority normal
-	./mach package
+		./mach build --priority normal
+		./mach package
 
-	echo; echo "----- Profiling instrumented browser -----"; echo
-	LLVM_PROFDATA=llvm-profdata \
-		JARLOG_FILE="$PWD/jarlog" dbus-run-session \
-		xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
-		./mach python build/pgo/profileserver.py
+		echo; echo "----- Profiling instrumented browser -----"; echo
+		LLVM_PROFDATA=llvm-profdata \
+			JARLOG_FILE="$PWD/jarlog.new" dbus-run-session \
+			xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
+			./mach python build/pgo/profileserver.py
+		[[ -s merged.profdata ]] || { echo >&2 "ERROR: No profile data produced"; return 1; }
+		stat -c "Profile data found (%s bytes)" merged.profdata
+		[[ -s jarlog.new ]] || { echo >&2 "ERROR: No jarlog produced"; return 1; }
+		stat -c "Profile jarlog found (%s bytes)" jarlog.new
+	fi
 
-	[[ -s merged.profdata ]] || { echo >&2 "ERROR: No profile data produced"; return 1; }
-	stat -c "Profile data found (%s bytes)" merged.profdata
-	[[ -s jarlog ]] || { echo >&2 "ERROR: No jarlog produced"; return 1; }
-	stat -c "Profile jarlog found (%s bytes)" jarlog
-
-	echo; echo "----- Removing instrumented browser -----"; echo
-	./mach clobber objdir
+	[[ ! -e jarlog.new ]] || {
+		echo; echo "----- Removing instrumented browser -----"; echo
+		./mach clobber objdir && mv jarlog{.new,}; }
+	[[ -s merged.profdata && -s jarlog ]] || {
+		echo >&2 "ERROR: Missing merged.profdata or jarlog - rm both to re-run profiling"
+		return 1; }
 
 	echo; echo "----- Building optimized browser -----"; echo
-	cat >.mozconfig ../mozconfig - <<END
+	cat >.mozconfig.new ../mozconfig - <<END
 ac_add_options --enable-lto=cross,full
 ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 END
+	cmp -s .mozconfig.new .mozconfig || cat .mozconfig.new >.mozconfig
 
-	else
+	else # ----- simple one-step build
 	echo; echo "----- Building browser without PGO -----"; echo
 	cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto
