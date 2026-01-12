@@ -26,7 +26,7 @@ b2sums=(
 	SKIP )
 
 pkgrel=1
-pkgdesc='Fork of Mozilla Firefox featuring some legacy extensions, removed telemetry and no Pocket integration, current branch.'
+pkgdesc='Fork of Mozilla Firefox with some nice built-in themes/addons, removed telemetry and misfeatures.'
 arch=(x86_64)
 license=(MPL-2.0)
 url='https://www.waterfox.net/'
@@ -255,7 +255,7 @@ ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 END
-	cmp -s .mozconfig.new .mozconfig || cat .mozconfig.new >.mozconfig
+	cmp -s .mozconfig{,.new} || cat .mozconfig.new >.mozconfig
 
 	else # ----- simple one-step build
 	echo; echo "----- Building browser without PGO -----"; echo
