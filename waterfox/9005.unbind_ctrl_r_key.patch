@@ -1,0 +1,13 @@
+diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browser-sets.inc
+index f8a2373..1df6d8a 100644
+--- a/browser/base/content/browser-sets.inc
++++ b/browser/base/content/browser-sets.inc
+@@ -246,8 +246,6 @@
+     <key                                 data-l10n-id="picture-in-picture-toggle-shortcut-mac-alt" command="View:PictureInPicture" modifiers="accel,alt,shift"/>
+ #endif
+ 
+-    <key data-l10n-id="nav-reload-shortcut" command="Browser:Reload" modifiers="accel" id="key_reload"/>
+-    <key data-l10n-id="nav-reload-shortcut" command="Browser:ReloadSkipCache" modifiers="accel,shift" id="key_reload_skip_cache"/>
+     <key id="key_aboutProcesses" command="View:AboutProcesses" keycode="VK_ESCAPE" modifiers="shift"/>
+     <key id="key_viewSource" data-l10n-id="page-source-shortcut" command="View:PageSource" modifiers="accel"/>
+ #ifdef XP_MACOSX
