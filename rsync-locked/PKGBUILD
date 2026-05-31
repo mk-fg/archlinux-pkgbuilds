@@ -1,0 +1,51 @@
+pkgname=rsync-locked
+pkgver=3.3.1
+pkgrel=1
+pkgdesc='rsync tool locked to release before maintainer went LLM-nuts'
+arch=(x86_64)
+url=https://rsync.samba.org/
+license=(GPL3)
+depends=(acl libacl.so lz4 openssl popt xxhash libxxhash.so zlib zstd)
+optdepends=('python: for rrsync')
+makedepends=(git python-commonmark)
+conflicts=(rsync)
+provides=(rsync)
+backup=(etc/rsyncd.conf)
+source=(
+	rsync-3.3.0.tar.gz::https://github.com/RsyncProject/rsync/archive/v3.3.0.tar.gz
+	rsyncd.conf )
+sha256sums=(
+	bbc07ef74ac9e9b1506f7029c3a3630dd24cf270ee5256e96553bbd1cfd21610
+	733ccb571721433c3a6262c58b658253ca6553bec79c2bdd0011810bb4f2156b )
+
+_patches=( v3.3.1.patch )
+for p in ${_patches[@]}; do source+=($p); sha256sums+=(SKIP); done
+
+prepare() {
+	cd rsync-3.3.0
+	for p in ${_patches[@]}; do patch --dry-run -tNp1 -R -i "$srcdir"/$p >/dev/null \
+		|| patch -tNp1 -i "$srcdir"/$p || { echo >&2 "ERROR: patch failed - $p"; exit 1; }
+	done
+}
+
+build() {
+	cd rsync-3.3.0
+	./configure \
+		--prefix=/usr \
+		--enable-ipv6 \
+		--disable-debug \
+		--with-rrsync \
+		--with-included-popt=no \
+		--with-included-zlib=no
+	sed -i 's/^\#ifdef HAVE_LSEEK64/#if 0/' syscall.c # fix for modern glibc
+	make
+}
+
+package() {
+	cd rsync-3.3.0
+	make DESTDIR="$pkgdir" install
+	install -Dm0644 ../rsyncd.conf "$pkgdir/etc/rsyncd.conf"
+	install -Dm0644 packaging/systemd/rsync.service "$pkgdir/usr/lib/systemd/system/rsyncd.service"
+	install -Dm0644 packaging/systemd/rsync.socket "$pkgdir/usr/lib/systemd/system/rsyncd.socket"
+	install -Dm0644 packaging/systemd/rsync@.service "$pkgdir/usr/lib/systemd/system/rsyncd@.service"
+}
