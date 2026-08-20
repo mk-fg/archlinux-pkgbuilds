@@ -1,0 +1,137 @@
+# Based on PKGBUILD from Arch, but much simpler, with only python/systemd enabled
+
+pkgname=sng
+pkgver=4.12.0
+pkgrel=1
+pkgdesc='Next-generation syslogd with advanced networking and filtering capabilities'
+arch=(x86_64)
+url='https://github.com/syslog-ng/syslog-ng'
+license=(GPL-2.0 LGPL-2.1)
+
+_p=syslog-ng
+_d=$_p-$_p-$pkgver
+
+depends=(
+	bash
+	curl
+	glib2
+	json-c
+	liburing
+	openssl
+	systemd-libs
+)
+
+makedepends=(
+	autoconf-archive
+	bash
+	curl
+	gawk
+	git
+	glib2
+	gperf
+	json-c
+	liburing
+	pcre2
+	openssl
+	systemd-libs
+)
+
+source=(
+	$_p-$pkgver.tar.gz::"$url"/archive/$_p-$pkgver.tar.gz
+	git+https://github.com/balabit/ivykis.git )
+sha256sums=(
+	94c88cb6d23d95c82a25366ae5455e6b0854716f27ab8f9288bdc7983188a381
+	SKIP )
+
+prepare() {
+	cd $_d
+	[[ -L lib/ivykis ]] || { rmdir lib/ivykis && ln -s "$srcdir/ivykis" lib/ivykis; }
+	./autogen.sh
+}
+
+build() {
+	cd $_d
+	local configure_options=(
+
+		--enable-forced-server-mode
+
+		--disable-debug
+		--disable-example-modules
+		--disable-env-wrapper
+		--disable-gprof
+		--disable-memtrace
+
+		--enable-ipv6
+
+		--disable-tcp-wrapper
+		--disable-jemalloc
+		--disable-spoof-source
+		--disable-sun-streams
+		--disable-darwin-osl
+		--disable-openbsd-system-source
+		--disable-sql
+		--disable-pacct
+		--disable-linux-caps
+		--disable-ebpf
+		--disable-slog
+		--disable-gcov
+		--disable-mongodb
+
+		--enable-json
+
+		--disable-amqp
+		--disable-stomp
+		--disable-smtp
+		--disable-mqtt
+		--disable-grpc
+		--disable-cloud-auth
+		--disable-cpp
+		--disable-http
+		--disable-redis
+
+		--enable-systemd
+
+		--disable-geoip2
+		--disable-riemann
+		--disable-kafka
+
+		--enable-python
+
+		--disable-python-modules
+		--disable-manpages
+		--disable-manpages-install
+		--disable-java
+		--disable-java-modules
+		--disable-native
+		--disable-afsnmp
+		--disable-colored-log
+		--disable-tests
+		--disable-stackdump
+		--disable-scl-syslogconf-awk
+		--disable-dependency-tracking
+		--disable-dependency-tracking
+
+		--prefix=/usr
+		--sbindir=/usr/bin
+		--datadir=/usr/share
+		--libexecdir=/usr/lib
+		--localstatedir="/var/lib/$_p"
+		--sysconfdir="/etc/$_p"
+
+		--with-pidfile-dir=/run
+		--with-jsonc=system
+		--with-python-packages=system
+		--with-systemdsystemunitdir=/usr/lib/systemd/system
+
+	)
+	./configure "${configure_options[@]}"
+
+	# Prevent excessive overlinking due to libtool.
+	sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
+	make
+}
+
+package() {
+	cd $_d
+	make DESTDIR="$pkgdir" install
+}
