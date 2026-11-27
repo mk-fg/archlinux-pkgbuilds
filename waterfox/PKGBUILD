@@ -129,7 +129,7 @@ ac_add_options --disable-tests
 ac_add_options --enable-application=browser
 # ac_add_options --enable-bootstrap=-clang,-sysroot-wasm32-wasi,-sccache - disabled below
 ac_add_options --enable-install-strip
-ac_add_options MOZ_PGO=1
+# ac_add_options MOZ_PGO=1 -- auto-runs PGO as part of the build, best to do separately
 ac_add_options --enable-linker=lld
 # ac_add_options --enable-pulseaudio -- selected below
 ac_add_options --enable-strip
@@ -165,6 +165,7 @@ ac_add_options --disable-alsa
 
 ac_add_options --disable-updater
 
+ac_add_options --disable-artifact-builds
 ac_add_options --disable-bootstrap
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
@@ -244,20 +245,20 @@ build() {
 
 	if [[ ! -s merged.profdata && ! -s jarlog ]]; then
 		echo; echo "----- Building instrumented browser -----"; echo
-		cat >.mozconfig ../mozconfig - <<END
+		cat >.mozconfig.new ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 
 ## MOZ_INCLUDE_SOURCE_INFO is to prevent this PGO profiling error:
 #  mozbuild.preprocessor.Preprocessor.Error: ('../../source-repo.h', None, 'no preprocessor directives found', None)
 export MOZ_INCLUDE_SOURCE_INFO=
 END
+		cmp -s .mozconfig{,.new} || cat .mozconfig.new >.mozconfig
 		./mach build --priority normal
 		./mach package
 
 		echo; echo "----- Profiling instrumented browser -----"; echo
-		LLVM_PROFDATA=llvm-profdata \
-			JARLOG_FILE="$PWD/jarlog.new" dbus-run-session \
-			xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
+		LLVM_PROFDATA=llvm-profdata JARLOG_FILE="$PWD/jarlog.new" \
+			dbus-run-session xvfb-run -s '-screen 0 1920x1080x24 -nolisten local' \
 			./mach python build/pgo/profileserver.py
 		[[ -s merged.profdata ]] || { echo >&2 "ERROR: No profile data produced"; return 1; }
 		stat -c "Profile data found (%s bytes)" merged.profdata
@@ -283,9 +284,10 @@ END
 
 	else # ----- simple one-step build
 	echo; echo "----- Building browser without PGO -----"; echo
-	cat >.mozconfig ../mozconfig - <<END
+	cat >.mozconfig.new ../mozconfig - <<END
 ac_add_options --enable-lto
 END
+	cmp -s .mozconfig{,.new} || cat .mozconfig.new >.mozconfig
 	fi
 
 	./mach build
