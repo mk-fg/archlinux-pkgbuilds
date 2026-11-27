@@ -1,7 +1,7 @@
-diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browser-sets.inc
+diff --git a/browser/base/content/browser-sets.inc.xhtml b/browser/base/content/browser-sets.inc.xhtml
 index b43ec29..f8a2373 100644
---- a/browser/base/content/browser-sets.inc
-+++ b/browser/base/content/browser-sets.inc
+--- a/browser/base/content/browser-sets.inc.xhtml
++++ b/browser/base/content/browser-sets.inc.xhtml
 @@ -169,7 +169,7 @@
      <key id="key_savePage" data-l10n-id="save-page-shortcut" command="Browser:SavePage" modifiers="accel"/>
      <key id="printKb" data-l10n-id="print-shortcut" command="cmd_print"  modifiers="accel"/>

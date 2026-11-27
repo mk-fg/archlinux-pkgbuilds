@@ -1,7 +1,7 @@
-diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browser-sets.inc
+diff --git a/browser/base/content/browser-sets.inc.xhtml b/browser/base/content/browser-sets.inc.xhtml
 index f8a2373..1df6d8a 100644
---- a/browser/base/content/browser-sets.inc
-+++ b/browser/base/content/browser-sets.inc
+--- a/browser/base/content/browser-sets.inc.xhtml
++++ b/browser/base/content/browser-sets.inc.xhtml
 @@ -246,8 +246,6 @@
      <key                                 data-l10n-id="picture-in-picture-toggle-shortcut-mac-alt" command="View:PictureInPicture" modifiers="accel,alt,shift"/>
  #endif

@@ -1,7 +1,7 @@
-diff --git a/browser/base/content/browser-sets.inc b/browser/base/content/browser-sets.inc
+diff --git a/browser/base/content/browser-sets.inc.xhtml b/browser/base/content/browser-sets.inc.xhtml
 index cb71918..36c230f 100644
---- a/browser/base/content/browser-sets.inc
-+++ b/browser/base/content/browser-sets.inc
+--- a/browser/base/content/browser-sets.inc.xhtml
++++ b/browser/base/content/browser-sets.inc.xhtml
 @@ -229,9 +229,9 @@
           data-l10n-id="reader-mode-toggle-shortcut-windows"
  #else
