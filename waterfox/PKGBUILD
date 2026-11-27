@@ -1,7 +1,6 @@
 ## Based on the Waterfox from AUR by random-nick, which is in turn based on official firefox package in the repos.
 # Waterfox Current tracks Firefox ESR releases: G6.5 = 128, G6.6 = 140, G6.7 = 153
 # Source repo: https://github.com/BrowserWorks/Waterfox
-# This build requires large amount of RAM (30-40 gigs), using gcc with pgo+lto - https://bugs.gentoo.org/837122
 
 pkgname=waterfox
 pkgver=6.7.9
@@ -88,18 +87,12 @@ optdepends=(
 options=(!emptydirs !makeflags !strip !lto !debug)
 # _disable_pgo=y # uncomment this to disable building the profiled browser and using PGO
 
-
-# Note on ResistFingerPrinting (RFP) relax-patches: these are intended for full RFP mode
-#   Recently there is also a "lite" FPP mode, see here for details - https://github.com/arkenfox/user.js/issues/1716
-#   "RFPTargets don't really interact with the RFP pref" (for FPP), so stuff is patched out of there
-#   Remote Settings/Overrides (Mozilla list of which sites to exclude from FPP) also shouldn't affect RFP
 local_patches=()
 for p in [0-9][0-9][0-9][0-9].*.patch
 	do local_patches+=( $p ); source+=( $p ); b2sums+=( SKIP ); done
 
 
 gen_mozconfig() {
-
 	cat >../mozconfig <<END
 ### From waterfox/build/mozconfig-x86_64-pc-linux-gnu + mozconfig.common in the repo
 ## Note waterfox/ dir - top-level build/ is a different bare-bones config
@@ -110,13 +103,13 @@ gen_mozconfig() {
 # ac_add_options --with-wasi-sysroot="$wasi_sysroot" -- overidden below
 
 # ac_add_options --enable-lto -- enabled separately below
-# ac_add_options --enable-optimize="$wfx_optimize" -- set for v1 compat below
+# ac_add_options --enable-optimize="$wfx_optimize" -- set for x86-64-v1 compat below
 ac_add_options --enable-release
 ac_add_options --enable-rust-simd
-# ac_add_options RUSTC_OPT_LEVEL=3 -- =2 below
+# ac_add_options RUSTC_OPT_LEVEL=3 -- overidden to =2 below
 export MOZILLA_OFFICIAL=1
 mk_add_options "export RUSTC_BOOTSTRAP=1"
-# export RUSTFLAGS="$RUSTFLAGS $wfx_rustflags" -- set for v1 compat below
+# export RUSTFLAGS="$RUSTFLAGS $wfx_rustflags" -- set for x86-64-v1 compat below
 
 ac_add_options --disable-crashreporter
 ac_add_options --disable-debug
@@ -249,7 +242,8 @@ build() {
 ac_add_options --enable-profile-generate=cross
 
 ## MOZ_INCLUDE_SOURCE_INFO is to prevent this PGO profiling error:
-#  mozbuild.preprocessor.Preprocessor.Error: ('../../source-repo.h', None, 'no preprocessor directives found', None)
+#  mozbuild.preprocessor.Preprocessor.Error:
+#   ('../../source-repo.h', None, 'no preprocessor directives found', None)
 export MOZ_INCLUDE_SOURCE_INFO=
 END
 		cmp -s .mozconfig{,.new} || cat .mozconfig.new >.mozconfig
@@ -336,12 +330,6 @@ END
 		"$pkgdir/usr/share/icons/hicolor/384x384/apps/$pkgname.png"
 	install -Dvm644 waterfox/browser/branding/content/about-logo.svg \
 		"$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
-
 	install -Dvm644 ../$pkgname.desktop \
 		"$pkgdir/usr/share/applications/$pkgname.desktop"
-
-	# Remove unnecessary duplicate binary
-	# https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-	rm "$pkgdir/usr/lib/$pkgname/waterfox-bin" \
-		|| echo >&2 "WARNING: unnecessary rm for waterfox-bin duplicate binary, clean it up"
 }
